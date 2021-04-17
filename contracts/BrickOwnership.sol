@@ -71,7 +71,7 @@ contract BrickBond is Brick, ERC721 {
   }
            
   function isApprovedForAll(address _owner, address _operator) external view virtual override returns (bool) {
-    return false;
+    return _operator == _owner;
   }
   
   function setApprovalForAll(address _operator, bool _approved) external virtual override {
@@ -80,7 +80,10 @@ contract BrickBond is Brick, ERC721 {
   
   function tokenMetadata(uint256 _tokenId) public view returns (string memory) {
       (uint _property, uint _price, uint8 _stake) = getBrickDetails(_tokenId);
-      return string(abi.encodePacked("BrickBond #", _tokenId, " represents a ", _stake, "% stake in property", _property, ". It has a face value price of $", _price, "CAD."));
+      return string(abi.encodePacked("BrickBond #", itod(_tokenId), " represents a ", 
+            itod(_stake), "% stake in property ", 
+            itod(_property), ". It has a face value price of $", 
+            itod(_price), " CA."));
   }
   
   function withdraw(uint _amount, address payable _account) external onlyOwner {
@@ -119,5 +122,18 @@ contract BrickBond is Brick, ERC721 {
             return true;
         }
     }
+    
+    function itod(uint256 x) private pure returns (string memory) {
+        if (x > 0) {
+            string memory str;
+            while (x > 0) {
+                str = string(abi.encodePacked(uint8(x % 10 + 48), str));
+                x /= 10;
+            }
+            return str;
+        }
+        return "0";
+    }
+
 
 }
