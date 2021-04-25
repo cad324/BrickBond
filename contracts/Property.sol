@@ -50,14 +50,4 @@ contract RealProperty is Ownable {
     return buyerProperties;
   }
 
-  function listPropertyDetails(address _buyer) external view returns(Property[] memory) {
-    uint[] memory buyerProperties = getPropertiesByAddress(_buyer);
-    Property[] memory propertyDetails;
-    uint _count = buyerPropertyCount[_buyer];
-    for (uint i = 0; i < _count; i++) {
-      propertyDetails[i] = properties[buyerProperties[i]];
-    }
-    return propertyDetails;
-  }
-
 }

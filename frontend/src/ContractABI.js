@@ -297,19 +297,6 @@ export const ContractABI = [
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "getAddress",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
 		"inputs": [
 			{
 				"internalType": "uint256",
@@ -452,52 +439,6 @@ export const ContractABI = [
 				"internalType": "bool",
 				"name": "",
 				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_buyer",
-				"type": "address"
-			}
-		],
-		"name": "listPropertyDetails",
-		"outputs": [
-			{
-				"components": [
-					{
-						"internalType": "string",
-						"name": "street",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "city",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "province",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "zip_code",
-						"type": "string"
-					},
-					{
-						"internalType": "enum RealProperty.status",
-						"name": "property_status",
-						"type": "uint8"
-					}
-				],
-				"internalType": "struct RealProperty.Property[]",
-				"name": "",
-				"type": "tuple[]"
 			}
 		],
 		"stateMutability": "view",

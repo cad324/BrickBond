@@ -23,7 +23,6 @@ contract Brick is RealProperty {
   mapping (uint => uint) public brickToProperty;
   mapping (address => uint) public holderBrickCount;
   mapping (uint => uint) public propertyBrickCount;
-//   mapping (uint => uint[]) public propertyBricks;
   
   modifier onlyPropertyOwner(uint _brickId) {
     require(msg.sender == propertyToBuyer[brickToProperty[_brickId]], "Only the property owner can make this call");
@@ -45,7 +44,6 @@ contract Brick is RealProperty {
     brickToInvestor[_brickId] = msg.sender;
     holderBrickCount[msg.sender]++;
     public_offering += _stake;
-    // propertyBricks[_propertyId].push(_brickId);
   }
   
   function _matureBrick(uint _brickId) internal {

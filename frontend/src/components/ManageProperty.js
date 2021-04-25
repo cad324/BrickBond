@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Toolbar from '@material-ui/core/Toolbar';
 import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import CardContent from '@material-ui/core/CardContent';
+import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -18,6 +19,24 @@ const useStyles = makeStyles((theme) => ({
     '&:hover': {
       backgroundColor: '#3c5783'
     }
+  },
+  secondaryBtn: {
+    backgroundColor: 'rgba(149, 0, 4, 0.5)',
+    borderRadius: theme.spacing(2),
+    marginTop: theme.spacing(1.5),
+    padding: `${theme.spacing(0.5)}px ${theme.spacing(0.5)}px`,
+    color: '#fff',
+    '& span': {
+      fontSize: theme.spacing(1.25),
+      fontWeight: '600'
+    },
+    '&:hover': {
+      backgroundColor: 'rgba(149, 0, 4, 0.75)'
+    }
+  },
+  backIcon: {
+    fontSize: theme.spacing(1.25),
+    fontWeight: '600'
   },
   content: {
     flexGrow: 1,
@@ -68,7 +87,11 @@ const ManageProperty = (props) => {
   return (
     <div className={classes.content}>
       <Toolbar/>
-      <button onClick={props.history.goBack}>{'< Back'}</button>
+      <Button size={'small'} className={classes.secondaryBtn}
+      onClick={props.history.goBack}>
+        <ArrowBackIosIcon className={classes.backIcon} />
+        <Typography component="span" >Back</Typography>
+      </Button>
       <div className={classes.title}>{`
         ${props.propertyDetails[propertyId]["street"]},
          ${props.propertyDetails[propertyId]["city"]},
@@ -78,9 +101,9 @@ const ManageProperty = (props) => {
       <Card className={classes.card}>
         <CardContent>
           <Typography className={classes.cardTitle} color="textSecondary" gutterBottom>
-            Create Brick
+            CREATE BRICK
           </Typography>
-          <form className={classes.formCtr}>
+          <form onSubmit={createBrick} className={classes.formCtr}>
             <label>
               <span>{`Stake (%): `}</span>
               <input

@@ -20,7 +20,7 @@ import RegisterProperties from './components/RegisterProperties';
 import AppLayout from './components/AppLayout';
 import ManageProperty from './components/ManageProperty';
 
-const web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:7545"));
+const web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:8545"));
 web3.eth.defaultAccount = web3.eth.accounts[0];
 web3.eth.net.isListening()
    .then((e) => console.log('[Web3 Connected]', e))
@@ -28,7 +28,7 @@ web3.eth.net.isListening()
 
 const BrickBond = new web3.eth.Contract(
   ContractABI,
-  "0xaa7f3166eeCffE8eb096D5D17A6cb74e33789f4d"
+  "0x00Bd37A96677a5463DE06943540b50bd63Bbc623"
 );
 
 const useStyles = makeStyles((theme) => ({
@@ -157,10 +157,10 @@ const App = () => {
     const account = accounts[0];
     const gas = await BrickBond
                         .methods
-                        .registerProperty(myAddress, street, city, province, zip)
+                        .registerProperty(account, street, city, province, zip)
                         .estimateGas();
     BrickBond.methods
-      .registerProperty(myAddress, street, city, province, zip)
+      .registerProperty(account, street, city, province, zip)
       .send({
         from: account,
         gas: gas
@@ -175,20 +175,22 @@ const App = () => {
     setCreatingBrick(true);
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
     const account = accounts[0];
-    const gas = await BrickBond
-                        .methods
-                        .createBrick(propertyId, stake, price)
-                        .estimateGas();
-    BrickBond.methods
-      .createBrick(propertyId, stake, price)
-      .send({
-        from: account,
-        gas: gas
-      })
-      .then((res) => {
-        console.log(res);
-        setCreatingBrick(false);
-      }, err => {console.log("Cannot create brick", err, account); setCreatingBrick(false)});
+    try {
+      BrickBond.methods
+        .createBrick(propertyId, stake, price)
+        .send({
+          from: account,
+          gas: 4712388
+        })
+        .then((res) => {
+          console.log(res);
+          setCreatingBrick(false);
+        }, (err) => {console.log("Cannot create brick", err); setCreatingBrick(false)});
+    } catch (err) {
+      console.log('[CREATE BRICK]', err);
+      setCreatingBrick(false);
+    }
+
   }
 
   const classes = useStyles();
