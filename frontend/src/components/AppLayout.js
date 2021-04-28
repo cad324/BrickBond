@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -16,6 +17,9 @@ import Divider from '@material-ui/core/Divider';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
+import Collapse from '@material-ui/core/Collapse';
+import ExpandLess from '@material-ui/icons/ExpandLess';
+import ExpandMore from '@material-ui/icons/ExpandMore';
 import {
   Link
 } from "react-router-dom";
@@ -62,6 +66,14 @@ const useStyles = makeStyles((theme) => ({
     bottom: 0,
     paddingBottom: 10,
     width: drawerWidth
+  },
+  nested: {
+    paddingLeft: theme.spacing(10),
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
+    '& span': {
+      fontSize: theme.spacing(1.75)
+    }
   },
   propertiesList: {
     overflowY: 'scroll',
@@ -144,8 +156,15 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const AppLayout = () => {
+const AppLayout = (props) => {
+  const [open, setOpen] = useState(false);
   const classes = useStyles();
+  const page = "/"+window.location.href.split("/")[3];
+
+  const handlePropertiesClick = () => {
+    setOpen(!open);
+  };
+
   return (
     <>
       <CssBaseline />
@@ -185,11 +204,35 @@ const AppLayout = () => {
             ['Properties', <LocationCityIcon/>, "/properties"],
             ['Investors', <PeopleIcon/>, "/investors"],
             ['Analytics', <TimelineIcon/>, '/analytics']].map((item, index) => (
-              <Link key={item[0]} className={classes.navigation} to={item[2]}>
-                <ListItem button >
+              <Link
+              key={item[0]}
+              onClick={item[2]==="/properties" ? handlePropertiesClick : null}
+              className={classes.navigation}
+              to={item[2]==="/properties" ? "#" : item[2]}>
+                <ListItem button selected={page===item[2]}>
                   <ListItemIcon>{item[1]}</ListItemIcon>
                   <ListItemText primary={item[0]} />
+                  {open && item[2]==="/properties" ? <ExpandLess /> :
+                  item[2]==="/properties" ? <ExpandMore /> : null}
                 </ListItem>
+                {item[2]==="/properties" ?
+                  <Collapse in={open} timeout="auto" unmountOnExit>
+                    <List component="div" disablePadding>
+                      <Link key={item[0]} className={classes.navigation} to={item[2]}>
+                        <ListItem button className={classes.nested}>
+                          <ListItemText primary="My Properties" />
+                        </ListItem>
+                      </Link>
+                      <Link key={"browse"}
+                      className={classes.navigation}
+                      to={"/browse/properties"}>
+                        <ListItem button className={classes.nested}>
+                          <ListItemText primary="Browse Properties" />
+                        </ListItem>
+                      </Link>
+                    </List>
+                  </Collapse> : null
+                }
               </Link>
             ))}
             <div className={classes.bottomItem}>

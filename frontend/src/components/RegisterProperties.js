@@ -5,6 +5,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Toolbar from '@material-ui/core/Toolbar';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import PropertiesList from './PropertiesList';
 
@@ -24,6 +25,16 @@ const useStyles = makeStyles((theme) => ({
   content: {
     flexGrow: 1,
     padding: theme.spacing(3),
+  },
+  progress: {
+    width: `${theme.spacing(3)}px !important`,
+    height: `${theme.spacing(3)}px !important`,
+    marginTop: theme.spacing(1.5),
+    color: '#3c5783',
+    '& svg': {
+      width: theme.spacing(3),
+      height: theme.spacing(3)
+    }
   },
   formCtr: {
     '& label': {
@@ -110,7 +121,8 @@ const RegisterProperty = (props) => {
               />
             </label>
           </form>
-          {props.loadingRegistration ? <p>registering...</p> :
+          {props.loadingRegistration ?
+            <CircularProgress thickness={5} className={classes.progress} disableShrink /> :
             <Button onClick={registerProperty} size="small" className={classes.primaryBtn} variant="contained">
               <Typography variant="caption" component="p">Register Property</Typography>
             </Button>}

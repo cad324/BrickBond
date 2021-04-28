@@ -19,6 +19,7 @@ import {
 import RegisterProperties from './components/RegisterProperties';
 import AppLayout from './components/AppLayout';
 import ManageProperty from './components/ManageProperty';
+import BrowseProperties from './components/BrowseProperties';
 
 const web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:8545"));
 web3.eth.defaultAccount = web3.eth.accounts[0];
@@ -28,7 +29,7 @@ web3.eth.net.isListening()
 
 const BrickBond = new web3.eth.Contract(
   ContractABI,
-  "0x00Bd37A96677a5463DE06943540b50bd63Bbc623"
+  "0xeBC4E2c481596e20F18B6b830D20CF04e0F017b8"
 );
 
 const useStyles = makeStyles((theme) => ({
@@ -106,7 +107,12 @@ const App = () => {
   const [properties, setProperties] = useState([]);
   const [propertyDetails, setPropertyDetails] = useState([]);
   const [loadingRegistration, setLoadingRegistration] = useState(false);
+  const [loadingBrickDetails, setLoadingBrickDetails] = useState(false);
   const [creatingBrick, setCreatingBrick] = useState(false);
+  const [brickDetails, setBrickDetails] = useState([]);
+  const [propertyBricks, setPropertyBricks] = useState(0);
+  const [createdBrick, setCreatedBrick] = useState("");
+  const [allProperties, setAllProperties] = useState([]);
 
   useEffect(() => {
     getBalance();
@@ -116,6 +122,14 @@ const App = () => {
       loadPropertyDetails(id)
     );
   });
+
+  useEffect(() => {
+    BrickBond
+      .methods
+      .getAllProperties()
+      .call()
+      .then(res => setAllProperties(res));
+  }, [])
 
   const getBalance = async () => {
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -185,12 +199,57 @@ const App = () => {
         .then((res) => {
           console.log(res);
           setCreatingBrick(false);
+          showBrickCreationMessage("Brick creation successful! Refresh to see updated results.");
         }, (err) => {console.log("Cannot create brick", err); setCreatingBrick(false)});
     } catch (err) {
       console.log('[CREATE BRICK]', err);
       setCreatingBrick(false);
     }
+  }
 
+  const showBrickCreationMessage = (msg) => {
+    setCreatedBrick(msg);
+    setTimeout(() => {
+      setCreatedBrick("");
+    }, 5000);
+  }
+
+  const getBricksByProperty = async (id) => {
+    setLoadingBrickDetails(true);
+    try {
+      BrickBond.methods
+        .getBricksByProperty(id)
+        .call()
+        .then(res => {
+          loadBrickDetails(res);
+          setPropertyBricks(res);
+          console.log('[GET BRICKS BY PROPERTY]', res, id);
+        });
+    } catch (err) {
+      console.log('[Bricks by Property]', err);
+      setLoadingBrickDetails(false);
+    }
+  }
+
+  const loadBrickDetails = async bricks => {
+    let newDetails = [];
+    if (bricks.length) {
+      bricks.map(brick =>
+        BrickBond.methods
+                .bricks(brick)
+                .call()
+                .then(res => {
+                  newDetails[brick] = res;
+                  setBrickDetails(newDetails);
+                  setLoadingBrickDetails(false);
+                  console.log('New brick details', newDetails);
+                }, (err) => console.log('[LOAD BRICK DETAILS]', err))
+      );
+    } else {
+      setBrickDetails([]);
+      console.log('Emptied brick details');
+      setLoadingBrickDetails(false);
+    }
   }
 
   const classes = useStyles();
@@ -209,11 +268,18 @@ const App = () => {
               propertyDetails={propertyDetails}
               registerProperty={(a,s,c,p,z) => registerProperty(a,s,c,p,z)} />
           } />
-          <Route path="/property/" render={(props) =>
+          <Route exact path="/browse/properties" render={(props) =>
+            <BrowseProperties {...props} allProperties={allProperties} />
+          } />
+          <Route path="/property/:slug" render={(props) =>
             <ManageProperty
               {...props}
               propertyDetails={propertyDetails}
               creatingBrick={creatingBrick}
+              loadingBrickDetails={loadingBrickDetails}
+              getBricks={(id) => getBricksByProperty(id)}
+              bricks={brickDetails}
+              createdBrick={createdBrick}
               createBrick={(id, stake, price) => createBrick(id, stake, price)} />
           } />
           <Route exact path="/" render={(props) =>

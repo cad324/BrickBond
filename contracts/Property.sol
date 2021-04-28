@@ -49,5 +49,9 @@ contract RealProperty is Ownable {
     }
     return buyerProperties;
   }
+  
+  function getAllProperties() external view returns(Property[] memory) {
+      return properties;
+  }
 
 }
