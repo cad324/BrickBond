@@ -29,7 +29,7 @@ web3.eth.net.isListening()
 
 const BrickBond = new web3.eth.Contract(
   ContractABI,
-  "0xeBC4E2c481596e20F18B6b830D20CF04e0F017b8"
+  "0x28cA71a42ef5CA8BAf1CBbC5517E497b4A0EE20c"
 );
 
 const useStyles = makeStyles((theme) => ({
@@ -113,14 +113,21 @@ const App = () => {
   const [propertyBricks, setPropertyBricks] = useState(0);
   const [createdBrick, setCreatedBrick] = useState("");
   const [allProperties, setAllProperties] = useState([]);
+  const [allBricks, setAllBricks] = useState([]);
+  const [brickApprovalRequests, setBrickApprovalRequests] = useState([]);
+  const [propertyBrickCount, setPropertyBrickCount] = useState([]);
+  const [brickOwners, setBrickOwners] = useState([]);
+  const [approvedList, setApprovedList] = useState([]);
+
+  const ETH_EX = 1000000000000000000/1500;
 
   useEffect(() => {
     getBalance();
     getAddress();
     getPropertiesByAddress();
-    properties.map(id =>
-      loadPropertyDetails(id)
-    );
+    properties.map(id => {
+      loadPropertyDetails(id);
+    });
   });
 
   useEffect(() => {
@@ -129,7 +136,45 @@ const App = () => {
       .getAllProperties()
       .call()
       .then(res => setAllProperties(res));
+    BrickBond
+      .methods
+      .getAllBricks()
+      .call()
+      .then(res => setAllBricks(res));
   }, [])
+
+  useEffect(() => {
+    BrickBond
+      .methods
+      .getBrickOwners()
+      .call()
+      .then(res => {setBrickOwners(res); console.log('brick owners', res)});
+    allBricks.map((brick, index) => {
+      BrickBond
+        .methods
+        .getBrickRequests(index)
+        .call()
+        .then(res => {
+          let brickRequests = brickApprovalRequests;
+          brickRequests[index] = res;
+          setBrickApprovalRequests(brickRequests);
+        })
+    });
+  }, [allBricks]);
+
+  useEffect(() => {
+    allBricks.map((brick, index) => {
+      BrickBond.methods
+        .getApproved(index)
+        .call()
+        .then(res => {
+          let approvals = approvedList;
+          approvals[index] = res;
+          console.log('[APPROVED]', index, res)
+          setApprovedList(approvals);
+        })
+    })
+  }, [allBricks])
 
   const getBalance = async () => {
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -223,12 +268,29 @@ const App = () => {
         .then(res => {
           loadBrickDetails(res);
           setPropertyBricks(res);
+          let tempPropertyCount = propertyBrickCount;
+          tempPropertyCount[id] = res.length;
+          setPropertyBrickCount(tempPropertyCount);
           console.log('[GET BRICKS BY PROPERTY]', res, id);
         });
     } catch (err) {
       console.log('[Bricks by Property]', err);
       setLoadingBrickDetails(false);
     }
+  }
+
+  const getAllPropertyBrickCounts = async () => {
+    allProperties.map((property, index) => {
+      BrickBond.methods
+        .getBricksByProperty(index)
+        .call()
+        .then(res => {
+          let tempPropertyCount = propertyBrickCount;
+          tempPropertyCount[index] = res.length;
+          setPropertyBrickCount(tempPropertyCount);
+          console.log(index, res, propertyBrickCount[index]);
+        });
+    })
   }
 
   const loadBrickDetails = async bricks => {
@@ -252,6 +314,41 @@ const App = () => {
     }
   }
 
+  const requestApproval = (from, tokenId) => {
+    BrickBond.methods
+      .requestApproval(tokenId)
+      .send({
+        from: from
+      })
+      .then((res) => console.log('[REQUEST APPROVAL]', res),
+        (err) => console.log('[REQUEST APPROVAL]'));
+  }
+
+  const approve = async (approved, brickId) => {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const account = accounts[0];
+    BrickBond.methods
+      .approve(approved, brickId)
+      .send({
+        from: account
+      })
+      .then((res) => console.log('[APPROVE]', res),
+        (err) => console.log('[APPROVE]', err));
+  }
+
+  const transferFrom = async (from, to, brickId, price) => {
+    const value = price * ETH_EX * 1.02;
+    BrickBond
+      .methods
+      .transferFrom(from, to, brickId)
+      .send({
+        from: from,
+        value: value
+      })
+      .then((res) => console.log('[TRANSFER FROM]', res),
+        (err) => console.log('[TRANSFER FROM]', err));
+  }
+
   const classes = useStyles();
 
   return (
@@ -269,7 +366,11 @@ const App = () => {
               registerProperty={(a,s,c,p,z) => registerProperty(a,s,c,p,z)} />
           } />
           <Route exact path="/browse/properties" render={(props) =>
-            <BrowseProperties {...props} allProperties={allProperties} />
+            <BrowseProperties
+              {...props}
+              getAllPropertyBrickCounts={() => getAllPropertyBrickCounts()}
+              propertyBrickCount={propertyBrickCount}
+              allProperties={allProperties} />
           } />
           <Route path="/property/:slug" render={(props) =>
             <ManageProperty
@@ -279,7 +380,15 @@ const App = () => {
               loadingBrickDetails={loadingBrickDetails}
               getBricks={(id) => getBricksByProperty(id)}
               bricks={brickDetails}
+              brickOwners={brickOwners}
+              address={myAddress}
+              approvedList={approvedList}
+              transferFrom={(from, to, brickId, price) => transferFrom(from, to, brickId, price)}
+              requestApproval={(from, brickId) => requestApproval(from, brickId)}
+              brickApprovalRequests={brickApprovalRequests}
               createdBrick={createdBrick}
+              approve={(approved, brickId) => approve(approved, brickId)}
+              allProperties={allProperties}
               createBrick={(id, stake, price) => createBrick(id, stake, price)} />
           } />
           <Route exact path="/" render={(props) =>

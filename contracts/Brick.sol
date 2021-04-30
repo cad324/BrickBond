@@ -120,5 +120,17 @@ contract Brick is RealProperty {
         emit DividendPayout(msg.sender, brickToInvestor[_bricks[i]], _success);
     }
   }
+ 
+  function getAllBricks() external view returns(BrickBond[] memory) {
+    return bricks;
+  }
+  
+  function getBrickOwners() external view returns(address[] memory) {
+    address[] memory _brickOwners = new address[](bricks.length);
+    for (uint i = 0; i < _brickOwners.length; i++) {
+        _brickOwners[i] = brickToInvestor[i];
+    }
+    return _brickOwners;
+  }
 
 }

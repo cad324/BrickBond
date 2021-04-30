@@ -52,6 +52,12 @@ const useStyles = makeStyles((theme) => ({
       backgroundColor: 'rgba(149, 0, 4, 0.75)'
     }
   },
+  brickItem: {
+    display: 'flex',
+    '& p': {
+      flexGrow: 1
+    }
+  },
   backIcon: {
     fontSize: theme.spacing(1.25),
     fontWeight: '600'
@@ -113,14 +119,14 @@ const ManageProperty = (props) => {
 
   useEffect(() => {
     props.getBricks(slug);
-    console.log('calling get bricks');
+    console.log('[APPROVED LIST]', props.approvedList)
   }, []);
 
   return (
     <div className={classes.content}>
       <Toolbar/>
       {
-        props.propertyDetails[slug] ?
+        props.allProperties[slug] ?
         <>
           <Button size={'small'} className={classes.secondaryBtn}
           onClick={props.history.goBack}>
@@ -128,10 +134,10 @@ const ManageProperty = (props) => {
             <Typography component="span" >Back</Typography>
           </Button>
           <div className={classes.title}>{`
-            ${props.propertyDetails[slug]["street"]},
-             ${props.propertyDetails[slug]["city"]},
-              ${props.propertyDetails[slug]["province"]}
-               ${props.propertyDetails[slug]["zip_code"]}
+            ${props.allProperties[slug]["street"]},
+             ${props.allProperties[slug]["city"]},
+              ${props.allProperties[slug]["province"]}
+               ${props.allProperties[slug]["zip_code"]}
           `}</div>
           <Card className={classes.card}>
             <CardContent>
@@ -186,7 +192,36 @@ const ManageProperty = (props) => {
                   </Typography> :
                 props.bricks
                   .map((brick, index) =>
-                    <p key={index}>Brick {index}: Price: CA${brick.price}, Stake: {brick.stake}%</p>)
+                    <div className={classes.brickItem} key={index}>
+                      <p>
+                        Brick {index}: Price: CA${brick.price}, Stake: {brick.stake}%
+                      </p>
+                      {props.address.toLowerCase() === props.brickOwners[index].toLowerCase() ?
+                        <ul>
+                        {
+                          props.brickApprovalRequests[index].map((req, i) =>
+                            <li key={`req-${i}`}>
+                              <span>{req}</span>
+                              <Button onClick={() => props.approve(req, index)}>
+                                Approve
+                              </Button>
+                            </li>
+                          )}
+                        </ul> :
+                        props.approvedList[index].toLowerCase() === props.address.toLowerCase() ?
+                          <Button
+                          onClick={() => props.transferFrom(props.brickOwners[index],
+                                                props.address,
+                                                index,
+                                                brick.price)}>
+                            Buy Brick
+                          </Button> :
+                          <Button
+                          onClick={() => props.requestApproval(props.address, index)}>
+                            Join Waitlist
+                          </Button>
+                      }
+                    </div>)
                     :
                     <>
                       <Skeleton />
