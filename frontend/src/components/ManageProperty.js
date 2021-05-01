@@ -10,9 +10,10 @@ import CardContent from '@material-ui/core/CardContent';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import Skeleton from '@material-ui/lab/Skeleton';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import DoneIcon from '@material-ui/icons/Done';
+import Chip from '@material-ui/core/Chip';
 import {
-  useParams,
-  Redirect
+  useParams
 } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
@@ -28,6 +29,23 @@ const useStyles = makeStyles((theme) => ({
       backgroundColor: '#3c5783'
     }
   },
+  buyBtn: {
+    backgroundColor: '#005500',
+    margin: 'auto',
+    color: '#fff',
+    '&:hover': {
+      backgroundColor: '#418800'
+    }
+  },
+  approveBtn: {
+    backgroundColor: '#2F4858',
+    marginLeft: theme.spacing(1.5),
+    padding: `0 ${theme.spacing(1)}px`,
+    color: '#fff',
+    '&:hover': {
+      backgroundColor: '#3c5783'
+    }
+  },
   progress: {
     width: `${theme.spacing(3)}px !important`,
     height: `${theme.spacing(3)}px !important`,
@@ -37,6 +55,10 @@ const useStyles = makeStyles((theme) => ({
       width: theme.spacing(3),
       height: theme.spacing(3)
     }
+  },
+  chip: {
+    margin: 'auto',
+    marginLeft: theme.spacing(1)
   },
   secondaryBtn: {
     backgroundColor: 'rgba(149, 0, 4, 0.5)',
@@ -56,7 +78,8 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     '& p': {
       flexGrow: 1
-    }
+    },
+    flexWrap: 'wrap'
   },
   backIcon: {
     fontSize: theme.spacing(1.25),
@@ -95,6 +118,11 @@ const useStyles = makeStyles((theme) => ({
     fontSize: theme.spacing(2.5),
     marginTop: theme.spacing(2),
     marginBottom: theme.spacing(2)
+  },
+  approveList: {
+    '& li': {
+      marginBottom: theme.spacing(0.75)
+    }
   }
 }));
 
@@ -106,6 +134,7 @@ const ManageProperty = (props) => {
 
   const [stake, setStake] = useState(0);
   const [price, setPrice] = useState(0);
+  const [brickApprovalRequests, setBrickApprovalRequests] = useState([]);
 
   const classes = useStyles();
 
@@ -118,15 +147,29 @@ const ManageProperty = (props) => {
   const { slug } = useParams();
 
   useEffect(() => {
+    props.getAddress();
+    props.updateBrickApprovalRequests();
     props.getBricks(slug);
+    props.getAllProperties();
+    props.setIsPropertyOwner(slug);
     console.log('[APPROVED LIST]', props.approvedList)
   }, []);
+
+  useEffect(() => {
+    props.brickApprovalRequests.map((item, index) => {
+      let tempBrickApprovalrequests = brickApprovalRequests;
+      if (typeof(item) === "string") {
+        tempBrickApprovalrequests[index] = item.toLowerCase();
+        setBrickApprovalRequests(tempBrickApprovalrequests);
+      }
+    })
+  })
 
   return (
     <div className={classes.content}>
       <Toolbar/>
       {
-        props.allProperties[slug] ?
+        props.allProperties[slug] && props.approvedList ?
         <>
           <Button size={'small'} className={classes.secondaryBtn}
           onClick={props.history.goBack}>
@@ -139,7 +182,8 @@ const ManageProperty = (props) => {
               ${props.allProperties[slug]["province"]}
                ${props.allProperties[slug]["zip_code"]}
           `}</div>
-          <Card className={classes.card}>
+          {props.isPropertyOwner ?
+            <Card className={classes.card}>
             <CardContent>
               <Typography className={classes.cardTitle} color="textSecondary" gutterBottom>
                 CREATE BRICK
@@ -179,7 +223,7 @@ const ManageProperty = (props) => {
                 </Alert>
               </Snackbar>
             </CardContent>
-          </Card>
+          </Card> : null}
           <Card className={classes.card}>
             <CardContent>
               <Typography className={classes.cardTitle} color="textSecondary" gutterBottom>
@@ -196,30 +240,55 @@ const ManageProperty = (props) => {
                       <p>
                         Brick {index}: Price: CA${brick.price}, Stake: {brick.stake}%
                       </p>
-                      {props.address.toLowerCase() === props.brickOwners[index].toLowerCase() ?
-                        <ul>
+                      {props.address.toLowerCase() === props.brickOwners[index].toLowerCase()
+                        && props.brickApprovalRequests[index] ?
+                        <ol className={classes.approveList}>
                         {
                           props.brickApprovalRequests[index].map((req, i) =>
                             <li key={`req-${i}`}>
                               <span>{req}</span>
-                              <Button onClick={() => props.approve(req, index)}>
-                                Approve
-                              </Button>
+                              {props.approvingRequest[req] ?
+                                 <CircularProgress
+                                  thickness={5}
+                                  className={classes.progress} disableShrink /> :
+                                props.approvedList[index].toLowerCase() === req.toLowerCase() ?
+                                <Chip
+                                  size="small"
+                                  label="Approved"
+                                  className={classes.chip}
+                                  deleteIcon={<DoneIcon />} /> :
+                                 <Button
+                                 className={classes.approveBtn}
+                                 onClick={() => props.approve(req, index)}>
+                                   Approve
+                                 </Button>
+                               }
                             </li>
                           )}
-                        </ul> :
+                        </ol> : props.approvedList[index] ?
                         props.approvedList[index].toLowerCase() === props.address.toLowerCase() ?
+                        props.buyingBrick[index] ?
+                          <CircularProgress thickness={5} className={classes.progress} disableShrink /> :
                           <Button
+                          className={classes.buyBtn}
                           onClick={() => props.transferFrom(props.brickOwners[index],
                                                 props.address,
                                                 index,
                                                 brick.price)}>
                             Buy Brick
-                          </Button> :
-                          <Button
-                          onClick={() => props.requestApproval(props.address, index)}>
-                            Join Waitlist
                           </Button>
+                          : props.joiningWaitlist.includes(index) ?
+                          <CircularProgress thickness={5} className={classes.progress} disableShrink />
+                          : brickApprovalRequests.includes(props.address.toLowerCase()) ?
+                            <Button
+                            className={classes.primaryBtn}
+                            onClick={() => props.requestApproval(props.address, index)}>
+                              Join Waitlist
+                            </Button> :
+                            <Chip
+                            label="Awaiting approval"
+                            className={classes.chip}
+                            variant="default" /> : null
                       }
                     </div>)
                     :
@@ -232,7 +301,11 @@ const ManageProperty = (props) => {
             </CardContent>
           </Card>
         </>
-        : <Redirect to="/properties" />}
+        : <>
+          <Skeleton />
+          <Skeleton animation={false} />
+          <Skeleton animation="wave" />
+        </>}
     </div>
   )
 }
