@@ -58,6 +58,7 @@ contract BrickBond is Brick, ERC721 {
       (bool _success, ) = _from.call{value: _price}('');
       emit TransferResponse(_from, _success);
     }
+    _brickApprovalRequests[_tokenId] = new address[](0);
     emit Transfer(_from, _to, _tokenId);
   }
 

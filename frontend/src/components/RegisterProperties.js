@@ -6,6 +6,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import {Helmet} from "react-helmet";
 
 import PropertiesList from './PropertiesList';
 
@@ -76,6 +77,10 @@ const RegisterProperty = (props) => {
 
   return (
     <div className={classes.content}>
+      <Helmet>
+          <meta charSet="utf-8" />
+          <title>BrickBonds | My Properties</title>
+      </Helmet>
       <Toolbar/>
       <PropertiesList properties={props.properties} propertyDetails={props.propertyDetails} />
       <Card className={classes.card}>

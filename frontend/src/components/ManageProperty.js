@@ -12,6 +12,7 @@ import Skeleton from '@material-ui/lab/Skeleton';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import DoneIcon from '@material-ui/icons/Done';
 import Chip from '@material-ui/core/Chip';
+import {Helmet} from "react-helmet";
 import {
   useParams
 } from "react-router-dom";
@@ -24,6 +25,7 @@ const useStyles = makeStyles((theme) => ({
   primaryBtn: {
     backgroundColor: '#2F4858',
     marginTop: theme.spacing(1.5),
+    fontSize: theme.spacing(1.75),
     color: '#fff',
     '&:hover': {
       backgroundColor: '#3c5783'
@@ -33,6 +35,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: '#005500',
     margin: 'auto',
     color: '#fff',
+    fontSize: theme.spacing(1.75),
     '&:hover': {
       backgroundColor: '#418800'
     }
@@ -42,6 +45,7 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: theme.spacing(1.5),
     padding: `0 ${theme.spacing(1)}px`,
     color: '#fff',
+    fontSize: theme.spacing(1.75),
     '&:hover': {
       backgroundColor: '#3c5783'
     }
@@ -51,6 +55,18 @@ const useStyles = makeStyles((theme) => ({
     height: `${theme.spacing(3)}px !important`,
     marginTop: theme.spacing(1.5),
     color: '#3c5783',
+    '& svg': {
+      width: theme.spacing(3),
+      height: theme.spacing(3)
+    }
+  },
+  progressWide: {
+    width: `${theme.spacing(3)}px !important`,
+    height: `${theme.spacing(3)}px !important`,
+    marginTop: theme.spacing(1.5),
+    color: '#3c5783',
+    marginLeft: theme.spacing(2.75),
+    marginTop: theme.spacing(2.75),
     '& svg': {
       width: theme.spacing(3),
       height: theme.spacing(3)
@@ -77,7 +93,14 @@ const useStyles = makeStyles((theme) => ({
   brickItem: {
     display: 'flex',
     '& p': {
-      flexGrow: 1
+      flexGrow: 1,
+      fontWeight: '700',
+      margin: 0
+    },
+    '& h6': {
+      fontSize: theme.spacing(1.75),
+      fontWeight: '600',
+      marginBottom: theme.spacing(0.5)
     },
     flexWrap: 'wrap'
   },
@@ -120,6 +143,8 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(2)
   },
   approveList: {
+    paddingLeft: theme.spacing(1),
+    listStyle: 'none',
     '& li': {
       marginBottom: theme.spacing(0.75)
     }
@@ -157,16 +182,22 @@ const ManageProperty = (props) => {
 
   useEffect(() => {
     props.brickApprovalRequests.map((item, index) => {
-      let tempBrickApprovalrequests = brickApprovalRequests;
-      if (typeof(item) === "string") {
-        tempBrickApprovalrequests[index] = item.toLowerCase();
-        setBrickApprovalRequests(tempBrickApprovalrequests);
-      }
+      let tempBrickApprovalRequests = brickApprovalRequests;
+      let addressArr = [];
+      item.map((address, i) => {
+        addressArr[i] = address.toLowerCase();
+      });
+      tempBrickApprovalRequests[index] = addressArr;
+      setBrickApprovalRequests(tempBrickApprovalRequests);
     })
-  })
+  });
 
   return (
     <div className={classes.content}>
+      <Helmet>
+        <meta charSet="utf-8" />
+        <title>BrickBonds | Manage Property</title>
+      </Helmet>
       <Toolbar/>
       {
         props.allProperties[slug] && props.approvedList ?
@@ -238,33 +269,36 @@ const ManageProperty = (props) => {
                   .map((brick, index) =>
                     <div className={classes.brickItem} key={index}>
                       <p>
-                        Brick {index}: Price: CA${brick.price}, Stake: {brick.stake}%
+                        Brick {index} - Price: CA${brick.price}, Stake: {brick.stake}%
                       </p>
                       {props.address.toLowerCase() === props.brickOwners[index].toLowerCase()
                         && props.brickApprovalRequests[index] ?
                         <ol className={classes.approveList}>
-                        {
-                          props.brickApprovalRequests[index].map((req, i) =>
-                            <li key={`req-${i}`}>
-                              <span>{req}</span>
-                              {props.approvingRequest[req] ?
-                                 <CircularProgress
-                                  thickness={5}
-                                  className={classes.progress} disableShrink /> :
-                                props.approvedList[index].toLowerCase() === req.toLowerCase() ?
-                                <Chip
-                                  size="small"
-                                  label="Approved"
-                                  className={classes.chip}
-                                  deleteIcon={<DoneIcon />} /> :
-                                 <Button
-                                 className={classes.approveBtn}
-                                 onClick={() => props.approve(req, index)}>
-                                   Approve
-                                 </Button>
-                               }
-                            </li>
-                          )}
+                          {props.brickApprovalRequests[index].length ?
+                            <Typography variant="h6">Buyers</Typography> : null
+                          }
+                          {
+                            props.brickApprovalRequests[index].map((req, i) =>
+                              <li key={`req-${i}`}>
+                                <span>{req}</span>
+                                {props.approvingRequest[req] ?
+                                   <CircularProgress
+                                    thickness={5}
+                                    className={classes.progressWide} disableShrink /> :
+                                  props.approvedList[index].toLowerCase() === req.toLowerCase() ?
+                                  <Chip
+                                    size="small"
+                                    label="Approved"
+                                    className={classes.chip}
+                                    deleteIcon={<DoneIcon />} /> :
+                                   <Button
+                                   className={classes.approveBtn}
+                                   onClick={() => props.approve(req, index)}>
+                                     Approve
+                                   </Button>
+                                 }
+                              </li>
+                            )}
                         </ol> : props.approvedList[index] ?
                         props.approvedList[index].toLowerCase() === props.address.toLowerCase() ?
                         props.buyingBrick[index] ?
@@ -279,7 +313,8 @@ const ManageProperty = (props) => {
                           </Button>
                           : props.joiningWaitlist.includes(index) ?
                           <CircularProgress thickness={5} className={classes.progress} disableShrink />
-                          : brickApprovalRequests.includes(props.address.toLowerCase()) ?
+                          : brickApprovalRequests[index] &&
+                          !brickApprovalRequests[index].includes(props.address.toLowerCase()) ?
                             <Button
                             className={classes.primaryBtn}
                             onClick={() => props.requestApproval(props.address, index)}>

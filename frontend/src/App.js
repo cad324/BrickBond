@@ -15,11 +15,12 @@ import {
   Link,
   Route
 } from "react-router-dom";
-
+import {Helmet} from "react-helmet";
 import RegisterProperties from './components/RegisterProperties';
 import AppLayout from './components/AppLayout';
 import ManageProperty from './components/ManageProperty';
 import BrowseProperties from './components/BrowseProperties';
+import BricksList from './components/BricksList';
 
 const web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:8545"));
 web3.eth.defaultAccount = web3.eth.accounts[0];
@@ -29,7 +30,7 @@ web3.eth.net.isListening()
 
 const BrickBond = new web3.eth.Contract(
   ContractABI,
-  "0x50b50c929A3c7aC783e7b76c241C6375B4B878bb"
+  "0x0E68140cf5907872aCA43C7ee06a942c7Dd58cA9"
 );
 
 const useStyles = makeStyles((theme) => ({
@@ -483,6 +484,10 @@ const App = () => {
           } />
           <Route exact path="/" render={(props) =>
             <main className={classes.content}>
+              <Helmet>
+                  <meta charSet="utf-8" />
+                  <title>BrickBond | Home</title>
+              </Helmet>
               <Toolbar/>
               <Typography variant="body2" component="p" className={classes.welcome}>
                 Here's what's happening with your account today.
@@ -523,6 +528,10 @@ const App = () => {
                   <Button size="small"><Link to="/properties">See More</Link></Button>
                 </CardActions>
               </Card>
+              <BricksList
+                address={myAddress}
+                brickOwners={brickOwners}
+                bricks={allBricks} />
               <br />
             </main>
           } />

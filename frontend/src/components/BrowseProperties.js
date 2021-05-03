@@ -6,6 +6,7 @@ import Typography from '@material-ui/core/Typography';
 import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
 import CardActions from '@material-ui/core/CardActions';
+import {Helmet} from "react-helmet";
 import {
   Link
 } from "react-router-dom";
@@ -51,6 +52,10 @@ const BrowseProperties = (props) => {
 
   return (
     <div className={classes.content}>
+      <Helmet>
+        <meta charSet="utf-8" />
+        <title>BrickBonds | Browse Properties</title>
+      </Helmet>
       <Toolbar/>
       <Typography className={classes.title} variant="h5">
         Browse Properties
