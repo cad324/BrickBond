@@ -6,6 +6,8 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
 import {Helmet} from "react-helmet";
 
 import PropertiesList from './PropertiesList';
@@ -27,6 +29,15 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1,
     padding: theme.spacing(3),
   },
+  cardTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    paddingBottom: theme.spacing(1.5)
+  },
+  card: {
+    marginBottom: theme.spacing(2),
+    marginRight: theme.spacing(2)
+  },
   progress: {
     width: `${theme.spacing(3)}px !important`,
     height: `${theme.spacing(3)}px !important`,
@@ -47,16 +58,12 @@ const useStyles = makeStyles((theme) => ({
       display: 'inline-block'
     }
   },
-  card: {
-    marginBottom: theme.spacing(2),
-    marginRight: theme.spacing(2)
-  },
-  cardTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    paddingBottom: theme.spacing(1.5)
-  }
+
 }));
+
+const Alert = (props) => {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
 const RegisterProperty = (props) => {
 
@@ -132,6 +139,11 @@ const RegisterProperty = (props) => {
               <Typography variant="caption" component="p">Register Property</Typography>
             </Button>}
         </CardContent>
+        <Snackbar open={props.registeredProperty} autoHideDuration={6000}>
+          <Alert severity="success">
+            Property registration successful!
+          </Alert>
+        </Snackbar>
       </Card>
     </div>
   )

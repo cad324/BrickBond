@@ -30,7 +30,7 @@ web3.eth.net.isListening()
 
 const BrickBond = new web3.eth.Contract(
   ContractABI,
-  "0x0E68140cf5907872aCA43C7ee06a942c7Dd58cA9"
+  "0x5f71e1E993589ABE1102CFee24a29748aBedBaaf"
 );
 
 const useStyles = makeStyles((theme) => ({
@@ -111,7 +111,7 @@ const App = () => {
   const [loadingBrickDetails, setLoadingBrickDetails] = useState(false);
   const [creatingBrick, setCreatingBrick] = useState(false);
   const [brickDetails, setBrickDetails] = useState([]);
-  const [propertyBricks, setPropertyBricks] = useState(0);
+  const [propertyBricks, setPropertyBricks] = useState([]);
   const [createdBrick, setCreatedBrick] = useState("");
   const [allProperties, setAllProperties] = useState([]);
   const [allBricks, setAllBricks] = useState([]);
@@ -123,6 +123,7 @@ const App = () => {
   const [joiningWaitlist, setJoiningWaitlist] = useState([]);
   const [approvingRequest, setApprovingRequest] = useState([]);
   const [buyingBrick, setBuyingBrick] = useState([]);
+  const [registeredProperty, setRegisteredProperty] = useState(false);
 
   const ETH_EX = 1000000000000000000/1500;
 
@@ -233,6 +234,7 @@ const App = () => {
       .then((v) => {
         console.log(v);
         setLoadingRegistration(false);
+        showPropertyRegistrationMessage();
       }, (v) => {console.log("Cannot register property:", v, account); setLoadingRegistration(false);});
   }
 
@@ -250,7 +252,8 @@ const App = () => {
         .then((res) => {
           console.log(res);
           setCreatingBrick(false);
-          showBrickCreationMessage("Brick creation successful! Refresh to see updated results.");
+          showBrickCreationMessage(true);
+          getBricksByProperty(propertyId);
         }, (err) => {console.log("Cannot create brick", err); setCreatingBrick(false)});
     } catch (err) {
       console.log('[CREATE BRICK]', err);
@@ -305,6 +308,13 @@ const App = () => {
     }, 5000);
   }
 
+  const showPropertyRegistrationMessage = () => {
+    setRegisteredProperty(true);
+    setTimeout(() => {
+      setRegisteredProperty(false);
+    }, 5000);
+  }
+
   const getBricksByProperty = async (id) => {
     setLoadingBrickDetails(true);
     try {
@@ -312,17 +322,26 @@ const App = () => {
         .getBricksByProperty(id)
         .call()
         .then(res => {
+          let tempPropertyBrick = propertyBricks;
+          res.map(brickId => {
+            tempPropertyBrick[brickId] = id;
+          });
           loadBrickDetails(res);
-          setPropertyBricks(res);
+          setPropertyBricks(tempPropertyBrick);
           let tempPropertyCount = propertyBrickCount;
           tempPropertyCount[id] = res.length;
           setPropertyBrickCount(tempPropertyCount);
-          console.log('[GET BRICKS BY PROPERTY]', res, id);
         });
     } catch (err) {
       console.log('[Bricks by Property]', err);
       setLoadingBrickDetails(false);
     }
+  }
+
+  const getAllPropertyBricks = () => {
+    properties.map(id => {
+      getBricksByProperty(id);
+    })
   }
 
   const getAllPropertyBrickCounts = async () => {
@@ -350,7 +369,6 @@ const App = () => {
                   newDetails[brick] = res;
                   setBrickDetails(newDetails);
                   setLoadingBrickDetails(false);
-                  console.log('New brick details', newDetails);
                 }, (err) => console.log('[LOAD BRICK DETAILS]', err))
       );
     } else {
@@ -443,6 +461,7 @@ const App = () => {
             <RegisterProperties
               {...props}
               address={myAddress}
+              registeredProperty={registeredProperty}
               loadingRegistration={loadingRegistration}
               properties={properties}
               propertyDetails={propertyDetails}
@@ -486,7 +505,7 @@ const App = () => {
             <main className={classes.content}>
               <Helmet>
                   <meta charSet="utf-8" />
-                  <title>BrickBond | Home</title>
+                  <title>BrickBonds | Home</title>
               </Helmet>
               <Toolbar/>
               <Typography variant="body2" component="p" className={classes.welcome}>
@@ -531,6 +550,8 @@ const App = () => {
               <BricksList
                 address={myAddress}
                 brickOwners={brickOwners}
+                getPropertyBricks={() => getAllPropertyBricks()}
+                propertyBricks={propertyBricks}
                 bricks={allBricks} />
               <br />
             </main>

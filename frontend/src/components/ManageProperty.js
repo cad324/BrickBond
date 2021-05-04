@@ -25,7 +25,7 @@ const useStyles = makeStyles((theme) => ({
   primaryBtn: {
     backgroundColor: '#2F4858',
     marginTop: theme.spacing(1.5),
-    fontSize: theme.spacing(1.75),
+    fontSize: theme.spacing(1.5),
     color: '#fff',
     '&:hover': {
       backgroundColor: '#3c5783'
@@ -35,7 +35,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: '#005500',
     margin: 'auto',
     color: '#fff',
-    fontSize: theme.spacing(1.75),
+    fontSize: theme.spacing(1.5),
     '&:hover': {
       backgroundColor: '#418800'
     }
@@ -45,7 +45,7 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: theme.spacing(1.5),
     padding: `0 ${theme.spacing(1)}px`,
     color: '#fff',
-    fontSize: theme.spacing(1.75),
+    fontSize: theme.spacing(1.5),
     '&:hover': {
       backgroundColor: '#3c5783'
     }
@@ -63,7 +63,6 @@ const useStyles = makeStyles((theme) => ({
   progressWide: {
     width: `${theme.spacing(3)}px !important`,
     height: `${theme.spacing(3)}px !important`,
-    marginTop: theme.spacing(1.5),
     color: '#3c5783',
     marginLeft: theme.spacing(2.75),
     marginTop: theme.spacing(2.75),
@@ -250,7 +249,7 @@ const ManageProperty = (props) => {
               </Button> : <CircularProgress thickness={5} className={classes.progress} disableShrink />}
               <Snackbar open={props.createdBrick} autoHideDuration={6000}>
                 <Alert severity="success">
-                  Brick creation successful! Refresh to see updated results.
+                  Brick creation successful!
                 </Alert>
               </Snackbar>
             </CardContent>
@@ -271,7 +270,8 @@ const ManageProperty = (props) => {
                       <p>
                         Brick {index} - Price: CA${brick.price}, Stake: {brick.stake}%
                       </p>
-                      {props.address.toLowerCase() === props.brickOwners[index].toLowerCase()
+                      {props.brickOwners[index]
+                        && props.address.toLowerCase() === props.brickOwners[index].toLowerCase()
                         && props.brickApprovalRequests[index] ?
                         <ol className={classes.approveList}>
                           {props.brickApprovalRequests[index].length ?
