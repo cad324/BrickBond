@@ -33,8 +33,9 @@ const useStyles = makeStyles((theme) => ({
   },
   buyBtn: {
     backgroundColor: '#005500',
-    margin: 'auto',
     color: '#fff',
+    width: theme.spacing(13.25),
+    padding: `0 ${theme.spacing(1)}px`,
     fontSize: theme.spacing(1.5),
     '&:hover': {
       backgroundColor: '#418800'
@@ -42,7 +43,6 @@ const useStyles = makeStyles((theme) => ({
   },
   approveBtn: {
     backgroundColor: '#2F4858',
-    marginLeft: theme.spacing(1.5),
     padding: `0 ${theme.spacing(1)}px`,
     color: '#fff',
     fontSize: theme.spacing(1.5),
@@ -65,7 +65,6 @@ const useStyles = makeStyles((theme) => ({
     height: `${theme.spacing(3)}px !important`,
     color: '#3c5783',
     marginLeft: theme.spacing(2.75),
-    marginTop: theme.spacing(2.75),
     '& svg': {
       width: theme.spacing(3),
       height: theme.spacing(3)
@@ -91,15 +90,24 @@ const useStyles = makeStyles((theme) => ({
   },
   brickItem: {
     display: 'flex',
+    marginBottom: theme.spacing(1),
     '& p': {
       flexGrow: 1,
       fontWeight: '700',
+      lineHeight: `${theme.spacing(4)}px`,
       margin: 0
     },
     '& h6': {
       fontSize: theme.spacing(1.75),
       fontWeight: '600',
       marginBottom: theme.spacing(0.5)
+    },
+    '& ol': {
+      width: '-webkit-fill-available',
+      margin: 0,
+      '& li > span': {
+        marginRight: theme.spacing(1)
+      },
     },
     flexWrap: 'wrap'
   },
@@ -177,7 +185,8 @@ const ManageProperty = (props) => {
     props.getAllProperties();
     props.setIsPropertyOwner(slug);
     console.log('[APPROVED LIST]', props.approvedList)
-  }, []);
+  }, [props.createdBrick, props.approvedTransfer, props.boughtBrick,
+    props.requestApprovalSent]);
 
   useEffect(() => {
     props.brickApprovalRequests.map((item, index) => {
@@ -247,11 +256,6 @@ const ManageProperty = (props) => {
                   variant="contained">
                 <Typography variant="caption" component="p">Create Brick</Typography>
               </Button> : <CircularProgress thickness={5} className={classes.progress} disableShrink />}
-              <Snackbar open={props.createdBrick} autoHideDuration={6000}>
-                <Alert severity="success">
-                  Brick creation successful!
-                </Alert>
-              </Snackbar>
             </CardContent>
           </Card> : null}
           <Card className={classes.card}>
@@ -273,33 +277,39 @@ const ManageProperty = (props) => {
                       {props.brickOwners[index]
                         && props.address.toLowerCase() === props.brickOwners[index].toLowerCase()
                         && props.brickApprovalRequests[index] ?
-                        <ol className={classes.approveList}>
-                          {props.brickApprovalRequests[index].length ?
-                            <Typography variant="h6">Buyers</Typography> : null
-                          }
-                          {
-                            props.brickApprovalRequests[index].map((req, i) =>
-                              <li key={`req-${i}`}>
-                                <span>{req}</span>
-                                {props.approvingRequest[req] ?
-                                   <CircularProgress
-                                    thickness={5}
-                                    className={classes.progressWide} disableShrink /> :
-                                  props.approvedList[index].toLowerCase() === req.toLowerCase() ?
-                                  <Chip
-                                    size="small"
-                                    label="Approved"
-                                    className={classes.chip}
-                                    deleteIcon={<DoneIcon />} /> :
-                                   <Button
-                                   className={classes.approveBtn}
-                                   onClick={() => props.approve(req, index)}>
-                                     Approve
-                                   </Button>
-                                 }
-                              </li>
-                            )}
-                        </ol> : props.approvedList[index] ?
+                        <>
+                          <Chip
+                            size="small"
+                            label="Owned"
+                            className={classes.chip} />
+                          <ol className={classes.approveList}>
+                            {props.brickApprovalRequests[index].length ?
+                              <Typography variant="h6">Waitlist</Typography> : null
+                            }
+                            {
+                              props.brickApprovalRequests[index].map((req, i) =>
+                                <li key={`req-${i}`}>
+                                  <span>{req}</span>
+                                  {props.approvingRequest[req] ?
+                                     <CircularProgress
+                                      thickness={5}
+                                      className={classes.progressWide} disableShrink /> :
+                                    props.approvedList[index].toLowerCase() === req.toLowerCase() ?
+                                    <Chip
+                                      size="small"
+                                      label="Approved"
+                                      className={classes.chip}
+                                      deleteIcon={<DoneIcon />} /> :
+                                     <Button
+                                     className={classes.approveBtn}
+                                     onClick={() => props.approve(req, index)}>
+                                       Approve
+                                     </Button>
+                                   }
+                                </li>
+                              )}
+                          </ol>
+                        </> : props.approvedList[index] ?
                         props.approvedList[index].toLowerCase() === props.address.toLowerCase() ?
                         props.buyingBrick[index] ?
                           <CircularProgress thickness={5} className={classes.progress} disableShrink /> :
@@ -312,11 +322,12 @@ const ManageProperty = (props) => {
                             Buy Brick
                           </Button>
                           : props.joiningWaitlist.includes(index) ?
-                          <CircularProgress thickness={5} className={classes.progress} disableShrink />
+                          <CircularProgress thickness={5} className={classes.progress}
+                          disableShrink />
                           : brickApprovalRequests[index] &&
                           !brickApprovalRequests[index].includes(props.address.toLowerCase()) ?
                             <Button
-                            className={classes.primaryBtn}
+                            className={classes.approveBtn}
                             onClick={() => props.requestApproval(props.address, index)}>
                               Join Waitlist
                             </Button> :

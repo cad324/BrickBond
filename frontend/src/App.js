@@ -16,6 +16,8 @@ import {
   Route
 } from "react-router-dom";
 import {Helmet} from "react-helmet";
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
 import RegisterProperties from './components/RegisterProperties';
 import AppLayout from './components/AppLayout';
 import ManageProperty from './components/ManageProperty';
@@ -30,8 +32,12 @@ web3.eth.net.isListening()
 
 const BrickBond = new web3.eth.Contract(
   ContractABI,
-  "0x5f71e1E993589ABE1102CFee24a29748aBedBaaf"
+  "0x6Cf1bA2493C5587915d740975Cc87bCBAf1f547d"
 );
+
+const Alert = (props) => {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
 const useStyles = makeStyles((theme) => ({
   '@global': {
@@ -122,6 +128,9 @@ const App = () => {
   const [isPropertyOwner, setIsPropertyOwner] = useState(false);
   const [joiningWaitlist, setJoiningWaitlist] = useState([]);
   const [approvingRequest, setApprovingRequest] = useState([]);
+  const [requestApprovalSent, setRequestApprovalSent] = useState(false);
+  const [approvedTransfer, setApprovedTransfer] = useState(false);
+  const [boughtBrick, setBoughtBrick] = useState(false)
   const [buyingBrick, setBuyingBrick] = useState([]);
   const [registeredProperty, setRegisteredProperty] = useState(false);
 
@@ -235,7 +244,9 @@ const App = () => {
         console.log(v);
         setLoadingRegistration(false);
         showPropertyRegistrationMessage();
-      }, (v) => {console.log("Cannot register property:", v, account); setLoadingRegistration(false);});
+      }, (v) => {
+        console.log("Cannot register property:", v, account);
+        setLoadingRegistration(false);});
   }
 
   const createBrick = async (propertyId, stake, price) => {
@@ -312,6 +323,27 @@ const App = () => {
     setRegisteredProperty(true);
     setTimeout(() => {
       setRegisteredProperty(false);
+    }, 5000);
+  }
+
+  const showApprovalRequestMessage = () => {
+    setRequestApprovalSent(true);
+    setTimeout(() => {
+      setRequestApprovalSent(false);
+    }, 5000);
+  }
+
+  const showApprovedTransferMessage = () => {
+    setApprovedTransfer(true);
+    setTimeout(() => {
+      setApprovedTransfer(false);
+    }, 5000);
+  }
+
+  const showBrickBoughtMessage = () => {
+    setBoughtBrick(true);
+    setTimeout(() => {
+      setBoughtBrick(false);
     }, 5000);
   }
 
@@ -392,6 +424,8 @@ const App = () => {
         let index = joiningWaitlist.indexOf(brickId);
         pending[index] = null;
         setJoiningWaitlist(pending);
+        showApprovalRequestMessage();
+        updateBrickApprovalRequests();
       },
         (err) => console.log('[REQUEST APPROVAL]'));
   }
@@ -411,6 +445,7 @@ const App = () => {
         console.log('[APPROVE]', res);
         tempApprovingRequest[approved] = false;
         setApprovingRequest(tempApprovingRequest);
+        showApprovedTransferMessage();
         getApproved();
       },
         (err) => console.log('[APPROVE]', err));
@@ -446,6 +481,7 @@ const App = () => {
         console.log('[TRANSFER FROM]', res);
         tempBuyingBrick[brickId] = false;
         setBuyingBrick(tempBuyingBrick);
+        showBrickBoughtMessage();
       },
         (err) => console.log('[TRANSFER FROM]', err));
   }
@@ -487,6 +523,8 @@ const App = () => {
               brickOwners={brickOwners}
               address={myAddress}
               approvingRequest={approvingRequest}
+              approvedTransfer={approvedTransfer}
+              boughtBrick={boughtBrick}
               getAddress={() => getAddress()}
               approvedList={approvedList}
               transferFrom={(from, to, brickId, price) => transferFrom(from, to, brickId, price)}
@@ -494,6 +532,7 @@ const App = () => {
               brickApprovalRequests={brickApprovalRequests}
               updateBrickApprovalRequests={() => updateBrickApprovalRequests()}
               createdBrick={createdBrick}
+              requestApprovalSent={requestApprovalSent}
               approve={(approved, brickId) => approve(approved, brickId)}
               allProperties={allProperties}
               getAllProperties={() => getAllProperties()}
@@ -557,6 +596,26 @@ const App = () => {
             </main>
           } />
         </Switch>
+        <Snackbar open={createdBrick} autoHideDuration={6000}>
+          <Alert severity="success">
+            Brick creation successful!
+          </Alert>
+        </Snackbar>
+        <Snackbar open={requestApprovalSent} autoHideDuration={6000}>
+          <Alert severity="success">
+            Joined waitlist!
+          </Alert>
+        </Snackbar>
+        <Snackbar open={approvedTransfer} autoHideDuration={6000}>
+          <Alert severity="success">
+            Successfully approved transfer!
+          </Alert>
+        </Snackbar>
+        <Snackbar open={boughtBrick} autoHideDuration={6000}>
+          <Alert severity="success">
+            Successfully purchased brick!
+          </Alert>
+        </Snackbar>
       </div>
     </Router>
   );

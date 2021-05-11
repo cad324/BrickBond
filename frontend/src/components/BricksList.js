@@ -15,8 +15,7 @@ const useStyles = makeStyles((theme) => ({
   },
   cardTitle: {
     fontSize: 12,
-    fontWeight: '600',
-    paddingBottom: theme.spacing(1.5)
+    fontWeight: '600'
   },
   content: {
     flexGrow: 1,
