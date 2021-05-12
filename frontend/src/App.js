@@ -32,7 +32,7 @@ web3.eth.net.isListening()
 
 const BrickBond = new web3.eth.Contract(
   ContractABI,
-  "0x6Cf1bA2493C5587915d740975Cc87bCBAf1f547d"
+  "0xD06e586220C5fbd02aa9C732a1B4f82798cB6D51"
 );
 
 const Alert = (props) => {
@@ -94,6 +94,11 @@ const useStyles = makeStyles((theme) => ({
       color: '#2F4858'
     }
   },
+  cardEmpty: {
+    textAlign: 'center',
+    marginTop: theme.spacing(3),
+    color: 'slategrey'
+  },
   content: {
     flexGrow: 1,
     padding: theme.spacing(3),
@@ -118,7 +123,7 @@ const App = () => {
   const [creatingBrick, setCreatingBrick] = useState(false);
   const [brickDetails, setBrickDetails] = useState([]);
   const [propertyBricks, setPropertyBricks] = useState([]);
-  const [createdBrick, setCreatedBrick] = useState("");
+  const [createdBrick, setCreatedBrick] = useState([false, ""]);
   const [allProperties, setAllProperties] = useState([]);
   const [allBricks, setAllBricks] = useState([]);
   const [brickApprovalRequests, setBrickApprovalRequests] = useState([]);
@@ -132,7 +137,9 @@ const App = () => {
   const [approvedTransfer, setApprovedTransfer] = useState(false);
   const [boughtBrick, setBoughtBrick] = useState(false)
   const [buyingBrick, setBuyingBrick] = useState([]);
-  const [registeredProperty, setRegisteredProperty] = useState(false);
+  const [payingInvestors, setPayingInvestors] = useState(false);
+  const [paidInvestors, setPaidInvestors] = useState([false, ""]);
+  const [registeredProperty, setRegisteredProperty] = useState([false, ""]);
 
   const ETH_EX = 1000000000000000000/1500;
 
@@ -140,9 +147,9 @@ const App = () => {
     getBalance();
     getAddress();
     getPropertiesByAddress();
-    properties.map(id => {
-      loadPropertyDetails(id);
-    });
+    properties.map(id =>
+      loadPropertyDetails(id)
+    );
   });
 
   useEffect(() => {
@@ -243,9 +250,10 @@ const App = () => {
       .then((v) => {
         console.log(v);
         setLoadingRegistration(false);
-        showPropertyRegistrationMessage();
+        showPropertyRegistrationMessage("success");
       }, (v) => {
         console.log("Cannot register property:", v, account);
+        showPropertyRegistrationMessage("error");
         setLoadingRegistration(false);});
   }
 
@@ -263,9 +271,13 @@ const App = () => {
         .then((res) => {
           console.log(res);
           setCreatingBrick(false);
-          showBrickCreationMessage(true);
+          showBrickCreationMessage("success");
           getBricksByProperty(propertyId);
-        }, (err) => {console.log("Cannot create brick", err); setCreatingBrick(false)});
+        }, (err) => {
+            console.log("Cannot create brick", err);
+            showBrickCreationMessage("error");
+            setCreatingBrick(false);
+          });
     } catch (err) {
       console.log('[CREATE BRICK]', err);
       setCreatingBrick(false);
@@ -312,38 +324,67 @@ const App = () => {
       })
   }
 
-  const showBrickCreationMessage = (msg) => {
-    setCreatedBrick(msg);
+  const payInvestors = async (payout, propertyId) => {
+    setPayingInvestors(true);
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const account = accounts[0];
+    const value = payout * ETH_EX;
+    BrickBond.methods
+      .payInvestors(propertyId)
+      .send({
+        from: account,
+        value: value
+      })
+      .then(res => {
+        console.log('[Paid investors]', res);
+        setPayingInvestors(false);
+        showPaidInvestorsMessage("success");
+      }, (err) => {
+        console.log('[Paying Investors failed]', err);
+        setPayingInvestors(false);
+        showPaidInvestorsMessage("error");
+      })
+  }
+
+  const showBrickCreationMessage = (res) => {
+    setCreatedBrick([true, res]);
     setTimeout(() => {
-      setCreatedBrick("");
+      setCreatedBrick([false, ""]);
     }, 5000);
   }
 
-  const showPropertyRegistrationMessage = () => {
-    setRegisteredProperty(true);
+  const showPropertyRegistrationMessage = (res) => {
+    setRegisteredProperty([true, res]);
     setTimeout(() => {
-      setRegisteredProperty(false);
+      setRegisteredProperty([false, ""]);
     }, 5000);
   }
 
-  const showApprovalRequestMessage = () => {
-    setRequestApprovalSent(true);
+  const showApprovalRequestMessage = (res) => {
+    setRequestApprovalSent([true, res]);
     setTimeout(() => {
-      setRequestApprovalSent(false);
+      setRequestApprovalSent([false, ""]);
     }, 5000);
   }
 
-  const showApprovedTransferMessage = () => {
-    setApprovedTransfer(true);
+  const showApprovedTransferMessage = (res) => {
+    setApprovedTransfer([true, res]);
     setTimeout(() => {
-      setApprovedTransfer(false);
+      setApprovedTransfer([false, ""]);
     }, 5000);
   }
 
-  const showBrickBoughtMessage = () => {
-    setBoughtBrick(true);
+  const showBrickBoughtMessage = (res) => {
+    setBoughtBrick([true, res]);
     setTimeout(() => {
-      setBoughtBrick(false);
+      setBoughtBrick([false, ""]);
+    }, 5000);
+  }
+
+  const showPaidInvestorsMessage = (res) => {
+    setPaidInvestors([true, res]);
+    setTimeout(() => {
+      setPaidInvestors([false, ""]);
     }, 5000);
   }
 
@@ -424,10 +465,12 @@ const App = () => {
         let index = joiningWaitlist.indexOf(brickId);
         pending[index] = null;
         setJoiningWaitlist(pending);
-        showApprovalRequestMessage();
+        showApprovalRequestMessage("success");
         updateBrickApprovalRequests();
-      },
-        (err) => console.log('[REQUEST APPROVAL]'));
+      }, (err) => {
+          console.log('[REQUEST APPROVAL]');
+          showApprovalRequestMessage("error");
+        });
   }
 
   const approve = async (approved, brickId) => {
@@ -445,10 +488,12 @@ const App = () => {
         console.log('[APPROVE]', res);
         tempApprovingRequest[approved] = false;
         setApprovingRequest(tempApprovingRequest);
-        showApprovedTransferMessage();
+        showApprovedTransferMessage("success");
         getApproved();
-      },
-        (err) => console.log('[APPROVE]', err));
+      }, (err) => {
+          console.log('[APPROVE]', err);
+          showApprovedTransferMessage("error");
+        });
   }
 
   const getApproved = () => {
@@ -481,9 +526,12 @@ const App = () => {
         console.log('[TRANSFER FROM]', res);
         tempBuyingBrick[brickId] = false;
         setBuyingBrick(tempBuyingBrick);
-        showBrickBoughtMessage();
+        showBrickBoughtMessage("success");
       },
-        (err) => console.log('[TRANSFER FROM]', err));
+        (err) => {
+          console.log('[TRANSFER FROM]', err);
+          showBrickBoughtMessage("error");
+        });
   }
 
   const classes = useStyles();
@@ -527,6 +575,8 @@ const App = () => {
               boughtBrick={boughtBrick}
               getAddress={() => getAddress()}
               approvedList={approvedList}
+              payInvestors={(payout, propertyId) => payInvestors(payout, propertyId)}
+              payingInvestors={payingInvestors}
               transferFrom={(from, to, brickId, price) => transferFrom(from, to, brickId, price)}
               requestApproval={(from, brickId) => requestApproval(from, brickId)}
               brickApprovalRequests={brickApprovalRequests}
@@ -580,6 +630,12 @@ const App = () => {
                           }</p>
                       }
                     )}
+                    {!properties.length ?
+                      <Typography className={classes.cardEmpty}>
+                        You have not registered any properties.
+                      </Typography>
+                      : null
+                    }
                   </div>
                 </CardContent>
                 <CardActions className={classes.cardActions}>
@@ -596,25 +652,65 @@ const App = () => {
             </main>
           } />
         </Switch>
-        <Snackbar open={createdBrick} autoHideDuration={6000}>
-          <Alert severity="success">
-            Brick creation successful!
-          </Alert>
+        <Snackbar open={createdBrick[0]} autoHideDuration={5000}>
+          {createdBrick[1] === "success" ?
+            <Alert severity="success">
+              Brick creation successful!
+            </Alert> : createdBrick[1] === "error" ?
+            <Alert severity="error">
+              Something went wrong. Please try again later.
+            </Alert> : null
+          }
         </Snackbar>
-        <Snackbar open={requestApprovalSent} autoHideDuration={6000}>
-          <Alert severity="success">
-            Joined waitlist!
-          </Alert>
+        <Snackbar open={requestApprovalSent[0]} autoHideDuration={5000}>
+          {requestApprovalSent[1] === "success" ?
+            <Alert severity="success">
+              Joined waitlist!
+            </Alert> : requestApprovalSent[1] === "error" ?
+            <Alert severity="error">
+              Something went wrong. Please try again later.
+            </Alert> : null
+          }
         </Snackbar>
-        <Snackbar open={approvedTransfer} autoHideDuration={6000}>
-          <Alert severity="success">
-            Successfully approved transfer!
-          </Alert>
+        <Snackbar open={approvedTransfer[0]} autoHideDuration={5000}>
+          {approvedTransfer[1] === "success" ?
+            <Alert severity="success">
+              Successfully approved transfer!
+            </Alert> : approvedTransfer[1] === "error" ?
+            <Alert severity="error">
+              Something went wrong. Please try again later.
+            </Alert> : null
+          }
         </Snackbar>
-        <Snackbar open={boughtBrick} autoHideDuration={6000}>
-          <Alert severity="success">
-            Successfully purchased brick!
-          </Alert>
+        <Snackbar open={boughtBrick[0]} autoHideDuration={5000}>
+          {boughtBrick[1] === "success" ?
+            <Alert severity="success">
+              Successfully purchased brick!
+            </Alert> : boughtBrick[1] === "error" ?
+            <Alert severity="error">
+              Something went wrong. Please try again later.
+            </Alert> : null
+          }
+        </Snackbar>
+        <Snackbar open={registeredProperty[0]} autoHideDuration={5000}>
+          {registeredProperty[1] === "success" ?
+            <Alert severity="success">
+              Property registration successful!
+            </Alert> : registeredProperty[1] === "error" ?
+            <Alert severity="error">
+              Something went wrong registering property. Please try again later.
+            </Alert> : null
+          }
+        </Snackbar>
+        <Snackbar open={paidInvestors[0]} autoHideDuration={5000}>
+          {paidInvestors[1] === "success" ?
+            <Alert severity="success">
+              Successfully paid investors
+            </Alert> : paidInvestors[1] === "error" ?
+            <Alert severity="error">
+              Could not pay investors. Please try again later.
+            </Alert> : null
+          }
         </Snackbar>
       </div>
     </Router>

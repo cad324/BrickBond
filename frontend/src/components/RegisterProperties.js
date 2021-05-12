@@ -6,8 +6,6 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import Snackbar from '@material-ui/core/Snackbar';
-import MuiAlert from '@material-ui/lab/Alert';
 import {Helmet} from "react-helmet";
 
 import PropertiesList from './PropertiesList';
@@ -61,10 +59,6 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-const Alert = (props) => {
-  return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
-
 const RegisterProperty = (props) => {
 
   const [street, setStreet] = useState("");
@@ -79,6 +73,8 @@ const RegisterProperty = (props) => {
     setCity("");
     setZip("")
   }
+
+  const disableButton = !(street && province && city && zip);
 
   const classes = useStyles();
 
@@ -135,15 +131,15 @@ const RegisterProperty = (props) => {
           </form>
           {props.loadingRegistration ?
             <CircularProgress thickness={5} className={classes.progress} disableShrink /> :
-            <Button onClick={registerProperty} size="small" className={classes.primaryBtn} variant="contained">
+            <Button
+            onClick={registerProperty}
+            size="small"
+            disabled={disableButton}
+            className={classes.primaryBtn}
+            variant="contained">
               <Typography variant="caption" component="p">Register Property</Typography>
             </Button>}
         </CardContent>
-        <Snackbar open={props.registeredProperty} autoHideDuration={6000}>
-          <Alert severity="success">
-            Property registration successful!
-          </Alert>
-        </Snackbar>
       </Card>
     </div>
   )

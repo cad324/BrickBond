@@ -6,6 +6,7 @@ import Typography from '@material-ui/core/Typography';
 import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
 import CardActions from '@material-ui/core/CardActions';
+import Skeleton from '@material-ui/lab/Skeleton';
 import {Helmet} from "react-helmet";
 import {
   Link
@@ -17,7 +18,8 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(3)
   },
   title: {
-    marginBottom: theme.spacing(1.5)
+    marginBottom: theme.spacing(1.5),
+    fontWeight: '600'
   },
   card: {
     marginBottom: theme.spacing(2),
@@ -30,6 +32,10 @@ const useStyles = makeStyles((theme) => ({
   cardContent: {
     paddingBottom: 0
   },
+  cardSkeleton: {
+    marginBottom: theme.spacing(1.5),
+    borderRadius: theme.spacing(0.25)
+  },
   brickCount: {
     padding: `${theme.spacing(1)}px 0`
   },
@@ -39,6 +45,10 @@ const useStyles = makeStyles((theme) => ({
       fontSize: theme.spacing(1.5),
       color: '#2F4858'
     }
+  },
+  subtitle: {
+    color: '#444444',
+    fontSize: theme.spacing(1.75)
   }
 }));
 
@@ -60,7 +70,7 @@ const BrowseProperties = (props) => {
       <Typography className={classes.title} variant="h5">
         Browse Properties
       </Typography>
-      {
+      {props.allProperties.length ?
         props.allProperties.map((property, index) =>
           {
             return (
@@ -84,7 +94,17 @@ const BrowseProperties = (props) => {
                 </CardActions>
               </Card>)
             }
-      )
+      ) : !props.allProperties ?
+        <>
+          <Skeleton className={classes.cardSkeleton} variant="rect" height={88} />
+          <Skeleton className={classes.cardSkeleton} animation={false} variant="rect"
+          height={88} />
+          <Skeleton className={classes.cardSkeleton} animation="wave" variant="rect"
+          height={88} />
+        </> :
+        <Typography className={classes.subtitle}>
+          There are no properties to display.
+        </Typography>
       }
     </div>
   )

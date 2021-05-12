@@ -21,6 +21,12 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1,
     padding: theme.spacing(3),
   },
+  cardEmpty: {
+    textAlign: 'center',
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(2),
+    color: 'slategrey'
+  },
   brickItem: {
     display: 'flex',
     '& p': {
@@ -84,6 +90,11 @@ const BricksList = (props) => {
             }
           })}
         </div>
+        {!props.bricks.length ?
+          <Typography className={classes.cardEmpty}>
+            You currently have no bricks.
+          </Typography> : null
+        }
       </CardContent>
     </Card>
   )

@@ -4,8 +4,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
-import Snackbar from '@material-ui/core/Snackbar';
-import MuiAlert from '@material-ui/lab/Alert';
 import CardContent from '@material-ui/core/CardContent';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import Skeleton from '@material-ui/lab/Skeleton';
@@ -16,6 +14,8 @@ import {Helmet} from "react-helmet";
 import {
   useParams
 } from "react-router-dom";
+
+import PayInvestors from './PayInvestors';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -143,6 +143,12 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(3),
     color: 'slategrey'
   },
+  ownerPanel: {
+    display: 'flex',
+    '& div': {
+      flexGrow: 1
+    }
+  },
   title: {
     fontWeight: '600',
     fontSize: theme.spacing(2.5),
@@ -158,10 +164,6 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const Alert = (props) => {
-  return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
-
 const ManageProperty = (props) => {
 
   const [stake, setStake] = useState(0);
@@ -174,6 +176,10 @@ const ManageProperty = (props) => {
     props.createBrick(slug, stake, price);
     setStake(0);
     setPrice(0);
+  }
+
+  const payInvestors = (payout) => {
+    props.payInvestors(payout, slug);
   }
 
   const { slug } = useParams();
@@ -222,42 +228,49 @@ const ManageProperty = (props) => {
                ${props.allProperties[slug]["zip_code"]}
           `}</div>
           {props.isPropertyOwner ?
-            <Card className={classes.card}>
-            <CardContent>
-              <Typography className={classes.cardTitle} color="textSecondary" gutterBottom>
-                CREATE BRICK
-              </Typography>
-              <form onSubmit={createBrick} className={classes.formCtr}>
-                <label>
-                  <span>{`Stake (%): `}</span>
-                  <input
-                    type="number"
-                    name="stake"
-                    max={100}
-                    value={stake}
-                    onChange={e => setStake(e.target.value)}
-                  />
-                </label>
-                <label>
-                  <span>{`Price (CA$): `}</span>
-                  <input
-                    type="number"
-                    name="price"
-                    value={price}
-                    onChange={e => setPrice(e.target.value)}
-                  />
-                </label>
-              </form>
-              {!props.creatingBrick ?
-                <Button
-                  onClick={createBrick}
-                  size="small"
-                  className={classes.primaryBtn}
-                  variant="contained">
-                <Typography variant="caption" component="p">Create Brick</Typography>
-              </Button> : <CircularProgress thickness={5} className={classes.progress} disableShrink />}
-            </CardContent>
-          </Card> : null}
+            <div className={classes.ownerPanel}>
+              <Card className={classes.card}>
+              <CardContent>
+                <Typography className={classes.cardTitle} color="textSecondary" gutterBottom>
+                  CREATE BRICK
+                </Typography>
+                <form onSubmit={createBrick} className={classes.formCtr}>
+                  <label>
+                    <span>{`Stake (%): `}</span>
+                    <input
+                      type="number"
+                      name="stake"
+                      max={100}
+                      value={stake}
+                      onChange={e => setStake(e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    <span>{`Price (CA$): `}</span>
+                    <input
+                      type="number"
+                      name="price"
+                      value={price}
+                      onChange={e => setPrice(e.target.value)}
+                    />
+                  </label>
+                </form>
+                {!props.creatingBrick ?
+                  <Button
+                    onClick={createBrick}
+                    size="small"
+                    disabled={stake * price <= 0}
+                    className={classes.primaryBtn}
+                    variant="contained">
+                  <Typography variant="caption" component="p">Create Brick</Typography>
+                </Button> : <CircularProgress thickness={5} className={classes.progress} disableShrink />}
+              </CardContent>
+            </Card>
+            {props.bricks.length ?
+              <PayInvestors
+                payingInvestors={props.payingInvestors}
+                payInvestors={(payout) => payInvestors(payout)}/> : null}
+          </div> : null}
           <Card className={classes.card}>
             <CardContent>
               <Typography className={classes.cardTitle} color="textSecondary" gutterBottom>
