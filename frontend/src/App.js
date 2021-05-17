@@ -32,7 +32,7 @@ web3.eth.net.isListening()
 
 const BrickBond = new web3.eth.Contract(
   ContractABI,
-  "0xD06e586220C5fbd02aa9C732a1B4f82798cB6D51"
+  "0xEB9c504108CfeFc4Cdc01CDC2B3eB7535b2ad83a" //New contract address here
 );
 
 const Alert = (props) => {
@@ -446,7 +446,6 @@ const App = () => {
       );
     } else {
       setBrickDetails([]);
-      console.log('Emptied brick details');
       setLoadingBrickDetails(false);
     }
   }
