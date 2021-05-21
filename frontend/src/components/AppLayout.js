@@ -242,7 +242,7 @@ const AppLayout = (props) => {
               <Link className={classes.navigation} to="/settings">
                 <ListItem button key={'settings'}>
                   <ListItemIcon>{<SettingsIcon/>}</ListItemIcon>
-                  <ListItemText primary={'Settings'} />
+                  <ListItemText primary={'Account Settings'} />
                 </ListItem>
               </Link>
             </div>

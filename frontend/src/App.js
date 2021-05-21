@@ -23,6 +23,7 @@ import AppLayout from './components/AppLayout';
 import ManageProperty from './components/ManageProperty';
 import BrowseProperties from './components/BrowseProperties';
 import BricksList from './components/BricksList';
+import AccountSettings from './components/AccountSettings';
 
 const web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:8545"));
 web3.eth.defaultAccount = web3.eth.accounts[0];
@@ -32,7 +33,7 @@ web3.eth.net.isListening()
 
 const BrickBond = new web3.eth.Contract(
   ContractABI,
-  "0xEB9c504108CfeFc4Cdc01CDC2B3eB7535b2ad83a" //New contract address here
+  "0x7a6B7B4Cd3022C2D21b0658B6cc3159aae723546" //New contract address here
 );
 
 const Alert = (props) => {
@@ -333,7 +334,7 @@ const App = () => {
       .payInvestors(propertyId)
       .send({
         from: account,
-        value: value
+        value
       })
       .then(res => {
         console.log('[Paid investors]', res);
@@ -519,7 +520,7 @@ const App = () => {
       .transferFrom(from, to, brickId)
       .send({
         from: from,
-        value: value
+        value
       })
       .then((res) => {
         console.log('[TRANSFER FROM]', res);
@@ -549,6 +550,9 @@ const App = () => {
               properties={properties}
               propertyDetails={propertyDetails}
               registerProperty={(a,s,c,p,z) => registerProperty(a,s,c,p,z)} />
+          } />
+          <Route exact path="/settings" render={(props) => 
+            <AccountSettings {...props} address={myAddress} />
           } />
           <Route exact path="/browse/properties" render={(props) =>
             <BrowseProperties

@@ -16,6 +16,7 @@ import {
 } from "react-router-dom";
 
 import PayInvestors from './PayInvestors';
+import FileUpload from './FileUpload';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -228,6 +229,8 @@ const ManageProperty = (props) => {
                ${props.allProperties[slug]["zip_code"]}
           `}</div>
           {props.isPropertyOwner ?
+          <>
+            <FileUpload property={slug} />
             <div className={classes.ownerPanel}>
               <Card className={classes.card}>
               <CardContent>
@@ -270,7 +273,7 @@ const ManageProperty = (props) => {
               <PayInvestors
                 payingInvestors={props.payingInvestors}
                 payInvestors={(payout) => payInvestors(payout)}/> : null}
-          </div> : null}
+          </div></> : null}
           <Card className={classes.card}>
             <CardContent>
               <Typography className={classes.cardTitle} color="textSecondary" gutterBottom>
