@@ -4,8 +4,12 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
+import Backdrop from '@material-ui/core/Backdrop';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import {DropzoneDialog} from 'material-ui-dropzone';
 import { makeStyles } from '@material-ui/core/styles';
+import Lightbox from 'react-image-lightbox';
+import 'react-image-lightbox/style.css';
 
 const Alert = (props) => {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -17,11 +21,21 @@ const useStyles = makeStyles((theme) => ({
     img: {
         '& img': {
             width: theme.spacing(21),
-            marginRight: theme.spacing(1)
+            marginRight: theme.spacing(1),
+            cursor: 'pointer'
         }
     },
     btnCtrl: {
         marginBottom: theme.spacing(2)
+    },
+    backdrop: {
+        zIndex: theme.zIndex.drawer + 1,
+        color: '#fff',
+    },
+    lightbox: {
+        '& img': {
+            top: theme.spacing(16)
+        }
     }
 }))
  
@@ -30,8 +44,15 @@ const FileUpload = ({property}) => {
     const [openModal, setOpenModal] = useState(false);
     const [uploadedFile, setUploadedFile] = useState([false, ""]);
     const [imagePaths, setImagePaths] = useState([]);
+    const [uploadingFile, setUploadingFile] = useState(false);
+    const [imageIndex, setImageIndex] = useState(0);
+    const [openLightbox, setOpenLightbox] = useState(false);
 
     useEffect(() => {
+        fetchFiles();
+    }, []);
+
+    const fetchFiles = () => {
         fetch(ENDPOINT.concat(property), {
             method: 'GET'
         })
@@ -41,10 +62,12 @@ const FileUpload = ({property}) => {
             setImagePaths(data.images);
         }, (err) => {
             console.log('[ERROR FETCHING PATHS]', err);
-        })
-    }, []);
+        });
+    }
 
     const handleSubmit = (files) => {
+        toggleModal();
+        setUploadingFile(true);
         for (let i = 0; i < files.length; i++) {
             let fileName = files[i].name;
             let propertyId = parseInt(property);
@@ -54,6 +77,8 @@ const FileUpload = ({property}) => {
             .uploadFile(files[i], fileName)
             .then(data => {
                 showUploadedFileMsg("success");
+                fetchFiles();
+                setUploadingFile(false);
                 try {
                     fetch(ENDPOINT, {
                         method: 'PUT',
@@ -70,10 +95,10 @@ const FileUpload = ({property}) => {
             })
             .catch(err => {
                 showUploadedFileMsg("error");
-                console.error('[FILE UPLOAD]', err)
+                setUploadingFile(false);
+                console.error('[FILE UPLOAD]', err);
             })
         }
-        toggleModal();
     }
 
     const showUploadedFileMsg = (res) => {
@@ -103,8 +128,11 @@ const FileUpload = ({property}) => {
     return (
         <div>
             <div className={classes.img}>
-            {imagePaths.map(path => 
-                <img src={`${process.env.REACT_APP_S3_URL}images/properties/${property}/${path}`} />
+            {imagePaths.map((path, i) => 
+                <img 
+                onClick={() => {setImageIndex(i); setOpenLightbox(true)}}
+                key={`path-${path}`}
+                src={`${process.env.REACT_APP_S3_URL}images/properties/${property}/${path}`} />
             )
             }
             </div>
@@ -115,6 +143,21 @@ const FileUpload = ({property}) => {
             variant="contained">
               <Typography variant="caption" component="p">+ Add Media</Typography>
             </Button>
+            <Backdrop className={classes.backdrop} open={uploadingFile}>
+                <CircularProgress color="inherit" />
+            </Backdrop>
+            {openLightbox && (
+                <Lightbox
+                wrapperClassName={classes.lightbox}
+                nextSrc={`${process.env.REACT_APP_S3_URL}images/properties/${property}/${imagePaths[(imageIndex + 1) % imagePaths.length]}`}
+                prevSrc={`${process.env.REACT_APP_S3_URL}images/properties/${property}/${imagePaths[(imageIndex + imagePaths.length - 1) % imagePaths.length]}`}
+                onCloseRequest={() => setOpenLightbox(false)}
+                mainSrc={`${process.env.REACT_APP_S3_URL}images/properties/${property}/${imagePaths[imageIndex]}`}
+                enableZoom={false}
+                onMovePrevRequest={() => setImageIndex((imageIndex + imagePaths.length - 1) % imagePaths.length)}
+                onMoveNextRequest={() => setImageIndex((imageIndex + 1) % imagePaths.length)}
+                />
+            )}
             <DropzoneDialog
                 open={openModal}
                 onClose={toggleModal}
