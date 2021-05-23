@@ -7,6 +7,7 @@ import { TextField,
     Button } from '@material-ui/core';
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
+import {Helmet} from "react-helmet";
 
 const Alert = (props) => {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -47,7 +48,7 @@ const useStyles = makeStyles((theme) => ({
       },
 }));
 
-const ENDPOINT = 'https://12henm3bz3.execute-api.us-east-2.amazonaws.com/Dev/user/';
+const ENDPOINT = process.env.REACT_APP_ENDPOINT;
 
 const AccountSettings = ({address}) => {
 
@@ -58,11 +59,11 @@ const AccountSettings = ({address}) => {
 
     const classes = useStyles();
 
-    const { id, first_name, last_name, city, zip, 
+    const { first_name, last_name, city, zip, 
         dob, issuer, province, address_1, address_2 } = userData;
 
     const putBody = { 
-        id: id,
+        id: address,
         first_name: first_name, 
         last_name: last_name, 
         city: city,
@@ -137,6 +138,9 @@ const AccountSettings = ({address}) => {
 
     return (
         <div className={classes.content}>
+            <Helmet>
+                <title>BrickBonds | Account Settings</title>
+            </Helmet>
             <Toolbar/>
             <Typography className={classes.heading} variant="h5">Account Settings</Typography>
             <div>

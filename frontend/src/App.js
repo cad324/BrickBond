@@ -33,7 +33,7 @@ web3.eth.net.isListening()
 
 const BrickBond = new web3.eth.Contract(
   ContractABI,
-  "0x7a6B7B4Cd3022C2D21b0658B6cc3159aae723546" //New contract address here
+  "0x863561F7D5C4eCA17fc22727fB85463B67436109" //New contract address here
 );
 
 const Alert = (props) => {
