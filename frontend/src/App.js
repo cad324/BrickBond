@@ -2,28 +2,27 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 import Web3 from "web3";
 import { ContractABI } from "./ContractABI";
-import Typography from '@material-ui/core/Typography';
+import { styles } from './components/App.Style.js';
 import { makeStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
-import Toolbar from '@material-ui/core/Toolbar';
-import Card from '@material-ui/core/Card';
-import CardActions from '@material-ui/core/CardActions';
-import CardContent from '@material-ui/core/CardContent';
 import {
   BrowserRouter as Router,
   Switch,
-  Link,
   Route
 } from "react-router-dom";
-import {Helmet} from "react-helmet";
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
 import RegisterProperties from './components/RegisterProperties';
 import AppLayout from './components/AppLayout';
 import ManageProperty from './components/ManageProperty';
 import BrowseProperties from './components/BrowseProperties';
-import BricksList from './components/BricksList';
 import AccountSettings from './components/AccountSettings';
+import Home from './components/Home';
+import { useSelector, useDispatch } from 'react-redux';
+import { addresser } from './features/account/addresserSlice';
+import { setBalance } from './features/account/balanceSlice';
+import { myPropertiesLoader } from './features/property/registeredPropertiesSlice';
+import { allPropertiesLoader } from './features/property/allPropertiesSlice';
+import { allBricksLoader } from './features/brick/allBricksSlice';
 
 const web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:8545"));
 web3.eth.defaultAccount = web3.eth.accounts[0];
@@ -33,88 +32,26 @@ web3.eth.net.isListening()
 
 const BrickBond = new web3.eth.Contract(
   ContractABI,
-  "0x35346f37f9B2C58a93037Bf4b41141d56af7ca04" //New contract address here
+  "0xc20873e197C28c46946b3B85E66DCD71C2E8E223" //New contract address here
 );
+
 
 const Alert = (props) => {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
-const useStyles = makeStyles((theme) => ({
-  '@global': {
-    '*::-webkit-scrollbar': {
-      width: '0.3em',
-      borderRadius: '0.4em'
-    },
-    '*::-webkit-scrollbar-track': {
-    },
-    '*::-webkit-scrollbar-thumb': {
-      backgroundColor: 'rgba(0,0,0,.4)',
-      outline: 'none'
-    }
-  },
-  root: {
-    display: 'flex',
-    fontFamily: 'Poppins'
-  },
-  welcome: {
-    marginBottom: theme.spacing(2),
-    color: '#535353'
-  },
-  primaryBtn: {
-    backgroundColor: '#2F4858',
-    color: '#fff',
-    '&:hover': {
-      backgroundColor: '#3c5783'
-    }
-  },
-  propertiesList: {
-    overflowY: 'scroll',
-    maxHeight: 150,
-    paddingRight: theme.spacing(2)
-  },
-  title: {
-    flexGrow: 1,
-    display: 'none',
-    [theme.breakpoints.up('sm')]: {
-      display: 'block',
-    },
-  },
-  cardTitle: {
-    fontSize: 12,
-    fontWeight: '600'
-  },
-  card: {
-    marginBottom: theme.spacing(2),
-    marginRight: theme.spacing(2)
-  },
-  cardActions: {
-    '& a': {
-      textDecoration: 'none',
-      fontSize: theme.spacing(1.5),
-      color: '#2F4858'
-    }
-  },
-  cardEmpty: {
-    textAlign: 'center',
-    marginTop: theme.spacing(3),
-    color: 'slategrey'
-  },
-  content: {
-    flexGrow: 1,
-    padding: theme.spacing(3),
-  },
-  balance: {
-    backgroundColor: 'rgba(0, 81, 133, 0.5)',
-    padding: `${theme.spacing(0.25)}px ${theme.spacing(1)}px`,
-    borderRadius: theme.spacing(1.25),
-    color: 'white',
-    fontSize: theme.spacing(1.5)
-  }
-}));
+const useStyles = makeStyles(styles);
 
 const App = () => {
 
+  /*Store variables*/
+  const address = useSelector((state) => state.addresser.address);
+  const balance = useSelector((state) => state.setBalance.brickBalance);
+  const allStoreProperties = useSelector((state) => state.allPropertiesLoader.allProperties);
+  const allstoreBricks = useSelector((state) => state.allBricksLoader.bricks);
+  const myPropertyIds = useSelector((state) => state.myPropertiesLoader.properties);
+  const dispatch = useDispatch();
+ 
   const [brickBalance, setBrickBalance] = useState(0);
   const [myAddress, setMyAddress] = useState(0);
   const [properties, setProperties] = useState([]);
@@ -136,7 +73,7 @@ const App = () => {
   const [approvingRequest, setApprovingRequest] = useState([]);
   const [requestApprovalSent, setRequestApprovalSent] = useState(false);
   const [approvedTransfer, setApprovedTransfer] = useState(false);
-  const [boughtBrick, setBoughtBrick] = useState(false)
+  const [boughtBrick, setBoughtBrick] = useState(false);
   const [buyingBrick, setBuyingBrick] = useState([]);
   const [payingInvestors, setPayingInvestors] = useState(false);
   const [paidInvestors, setPaidInvestors] = useState([false, ""]);
@@ -145,20 +82,22 @@ const App = () => {
   const ETH_EX = 1000000000000000000/1500;
 
   useEffect(() => {
-    getBalance();
-    getAddress();
-    getPropertiesByAddress();
     properties.map(id =>
       loadPropertyDetails(id)
     );
-  });
+    console.log('[PROPERTIES UPDATED]');
+  }, [properties]);
 
   useEffect(() => {
+    getAddress();
     BrickBond
       .methods
       .getAllProperties()
       .call()
-      .then(res => setAllProperties(res));
+      .then(res => {
+        setAllProperties(res);
+        dispatch(allPropertiesLoader(res));
+      });
     BrickBond
       .methods
       .getAllBricks()
@@ -206,12 +145,18 @@ const App = () => {
     await BrickBond.methods
       .balanceOf(account)
       .call()
-      .then(res => setBrickBalance(res));
+      .then(res => {
+        setBrickBalance(res);
+        dispatch(setBalance(res));
+      });
   }
 
   const getAddress = async () => {
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
     setMyAddress(accounts[0]);
+    getBalance();
+    getPropertiesByAddress();
+    dispatch(addresser(accounts[0]));
   }
 
   const getPropertiesByAddress = async () => {
@@ -220,7 +165,11 @@ const App = () => {
     await BrickBond.methods
       .getPropertiesByAddress(account)
       .call()
-      .then(e => setProperties(e));
+      .then(e => {
+        setProperties(e);
+        console.log('[Property IDs]', e);
+        dispatch(myPropertiesLoader(e));
+      });
   }
 
   const loadPropertyDetails = async e => {
@@ -234,7 +183,7 @@ const App = () => {
             });
   }
 
-  const registerProperty = async (myAddress, street, city, province, zip) => {
+  const registerProperty = async (street, city, province, zip) => {
     setLoadingRegistration(true);
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
     const account = accounts[0];
@@ -252,6 +201,7 @@ const App = () => {
         console.log(v);
         setLoadingRegistration(false);
         showPropertyRegistrationMessage("success");
+        getPropertiesByAddress();
       }, (v) => {
         console.log("Cannot register property:", v, account);
         showPropertyRegistrationMessage("error");
@@ -290,7 +240,10 @@ const App = () => {
       .methods
       .getAllProperties()
       .call()
-      .then(res => setAllProperties(res));
+      .then(res => {
+        setAllProperties(res);
+        dispatch(allPropertiesLoader(res));
+      });
   }
 
   const updateBrickApprovalRequests = async () => {
@@ -442,6 +395,7 @@ const App = () => {
                 .then(res => {
                   newDetails[brick] = res;
                   setBrickDetails(newDetails);
+                  dispatch(allBricksLoader(JSON.stringify(newDetails)));
                   setLoadingBrickDetails(false);
                 }, (err) => console.log('[LOAD BRICK DETAILS]', err))
       );
@@ -549,7 +503,7 @@ const App = () => {
               loadingRegistration={loadingRegistration}
               properties={properties}
               propertyDetails={propertyDetails}
-              registerProperty={(a,s,c,p,z) => registerProperty(a,s,c,p,z)} />
+              registerProperty={(s,c,p,z) => registerProperty(s,c,p,z)} />
           } />
           <Route exact path="/settings" render={(props) => 
             <AccountSettings {...props} address={myAddress} />
@@ -594,65 +548,16 @@ const App = () => {
               createBrick={(id, stake, price) => createBrick(id, stake, price)} />
           } />
           <Route exact path="/" render={(props) =>
-            <main className={classes.content}>
-              <Helmet>
-                  <meta charSet="utf-8" />
-                  <title>BrickBonds | Home</title>
-              </Helmet>
-              <Toolbar/>
-              <Typography variant="body2" component="p" className={classes.welcome}>
-                Here's what's happening with your account today.
-              </Typography>
-              <Card className={classes.card}>
-                <CardContent>
-                  <Typography className={classes.cardTitle} color="textSecondary" gutterBottom>
-                    ACCOUNT INFO
-                  </Typography>
-                  <Typography variant="body2" component="p">
-                    My address: {myAddress}
-                  </Typography>
-                  <Typography variant="body2" component="p">
-                    BRICK Balance: <span className={classes.balance}>{brickBalance} BRICK</span>
-                  </Typography>
-                </CardContent>
-              </Card>
-              <Card className={classes.card}>
-                <CardContent>
-                <Typography className={classes.cardTitle} color="textSecondary" gutterBottom>
-                  MY PROPERTIES
-                </Typography>
-                  <div className={classes.propertiesList}>
-                    {properties.map(property => {
-                        return <p key={`p-${property}`}>{
-                            propertyDetails[property] ?
-                              `${propertyDetails[property]["street"]},
-                              ${propertyDetails[property]["city"]},
-                               ${propertyDetails[property]["province"]}
-                              ${propertyDetails[property]["zip_code"]}`
-                              : `Property # ${property}`
-                          }</p>
-                      }
-                    )}
-                    {!properties.length ?
-                      <Typography className={classes.cardEmpty}>
-                        You have not registered any properties.
-                      </Typography>
-                      : null
-                    }
-                  </div>
-                </CardContent>
-                <CardActions className={classes.cardActions}>
-                  <Button size="small"><Link to="/properties">See More</Link></Button>
-                </CardActions>
-              </Card>
-              <BricksList
-                address={myAddress}
-                brickOwners={brickOwners}
-                getPropertyBricks={() => getAllPropertyBricks()}
-                propertyBricks={propertyBricks}
-                bricks={allBricks} />
-              <br />
-            </main>
+            <Home 
+              address={address}
+              balance={balance}
+              propertyDetails={propertyDetails}
+              properties={properties} 
+              propertyBricks={propertyBricks}
+              brickOwners={brickOwners}
+              allBricks={allBricks}
+              getAllPropertyBricks={() => getAllPropertyBricks()}
+            />
           } />
         </Switch>
         <Snackbar open={createdBrick[0]} autoHideDuration={5000}>
