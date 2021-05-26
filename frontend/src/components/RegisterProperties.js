@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
@@ -7,57 +7,13 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import {Helmet} from "react-helmet";
+import {styles} from './RegisterProperties.Style';
+import { setPage } from '../features/page/currentPageSlice';
+import { useDispatch } from 'react-redux';
 
 import PropertiesList from './PropertiesList';
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    display: 'flex',
-    fontFamily: 'Poppins'
-  },
-  primaryBtn: {
-    backgroundColor: '#2F4858',
-    marginTop: theme.spacing(1.5),
-    color: '#fff',
-    '&:hover': {
-      backgroundColor: '#3c5783'
-    }
-  },
-  content: {
-    flexGrow: 1,
-    padding: theme.spacing(3),
-  },
-  cardTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    paddingBottom: theme.spacing(1.5)
-  },
-  card: {
-    marginBottom: theme.spacing(2),
-    marginRight: theme.spacing(2)
-  },
-  progress: {
-    width: `${theme.spacing(3)}px !important`,
-    height: `${theme.spacing(3)}px !important`,
-    marginTop: theme.spacing(1.5),
-    color: '#3c5783',
-    '& svg': {
-      width: theme.spacing(3),
-      height: theme.spacing(3)
-    }
-  },
-  formCtr: {
-    '& label': {
-      display: 'block',
-      marginBottom: theme.spacing(1)
-    },
-    '& label span': {
-      width: theme.spacing(9),
-      display: 'inline-block'
-    }
-  },
-
-}));
+const useStyles = makeStyles(styles);
 
 const RegisterProperty = (props) => {
 
@@ -66,13 +22,19 @@ const RegisterProperty = (props) => {
   const [city, setCity] = useState("");
   const [zip, setZip] = useState("");
 
+  const dispatch = useDispatch();
+
   const registerProperty = () => {
-    props.registerProperty(props.address, street, city, province, zip);
+    props.registerProperty(street, city, province, zip);
     setStreet("");
     setProvince("");
     setCity("");
     setZip("")
   }
+
+  useEffect(() => {
+    dispatch(setPage('/properties'));
+  })
 
   const disableButton = !(street && province && city && zip);
 
