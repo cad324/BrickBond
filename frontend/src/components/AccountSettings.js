@@ -8,54 +8,29 @@ import { TextField,
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
 import {Helmet} from "react-helmet";
+import {styles} from './AccountSettings.Style';
+import { accountDetailsSetter } from '../features/account/accountDetailsSlice';
+import { setPage } from '../features/page/currentPageSlice';
+import { useSelector, useDispatch } from 'react-redux';
 
 const Alert = (props) => {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
   }
 
-const useStyles = makeStyles((theme) => ({
-    content: {
-        flexGrow: 1,
-        padding: theme.spacing(3),
-        '& label': {
-            display: 'flex',
-            marginBottom: theme.spacing(1.5),
-            '& p': {
-                width: theme.spacing(16)
-            },
-            '& > div': {
-                flexGrow: 1
-            }
-        }
-    },
-    heading: {
-        marginBottom: theme.spacing(3)
-    },
-    nameFields: {
-        display: 'flex'
-    },
-    primaryBtn: {
-        backgroundColor: '#2F4858',
-        marginTop: theme.spacing(1.5),
-        fontSize: theme.spacing(1.5),
-        color: '#fff',
-        '&:hover': {
-          backgroundColor: '#3c5783'
-        },
-        '&:disabled': {
-            backgroundColor: 'lightgrey'
-        }
-      },
-}));
+const useStyles = makeStyles(styles);
 
 const ENDPOINT = process.env.REACT_APP_ENDPOINT;
 
 const AccountSettings = ({address}) => {
 
+    const dispatch = useDispatch();
+
     const [userData, setUserData] = useState({});
     const [checked, setChecked] = useState(false);
     const [changed, setChanged] = useState(false);
     const [putChanges, setPutChanges] = useState([false, ""]);
+
+    const details = useSelector((state) => state.accountDetailsSetter.details );
 
     const classes = useStyles();
 
@@ -92,6 +67,7 @@ const AccountSettings = ({address}) => {
 
     useEffect(() => {
         getUserData();
+        dispatch(setPage('/settings'));
     }, []);
 
     const putUserData = () => {
@@ -124,6 +100,7 @@ const AccountSettings = ({address}) => {
             .then(data => {
                 console.log('[API GATEWAY RES]', data);
                 setUserData(data);
+                dispatch(accountDetailsSetter(data));
             }, (err) => {
                 console.log('[API GATEWAY ERR]', err);
             });

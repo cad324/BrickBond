@@ -10,6 +10,7 @@ import {DropzoneDialog} from 'material-ui-dropzone';
 import { makeStyles } from '@material-ui/core/styles';
 import Lightbox from 'react-image-lightbox';
 import 'react-image-lightbox/style.css';
+import {styles} from './FileUpload.Style.js';
 
 const Alert = (props) => {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -17,28 +18,8 @@ const Alert = (props) => {
 
 const ENDPOINT = process.env.REACT_APP_PROPERTY_ENDPOINT;
 
-const useStyles = makeStyles((theme) => ({
-    img: {
-        '& img': {
-            width: theme.spacing(21),
-            marginRight: theme.spacing(1),
-            cursor: 'pointer'
-        }
-    },
-    btnCtrl: {
-        marginBottom: theme.spacing(2)
-    },
-    backdrop: {
-        zIndex: theme.zIndex.drawer + 1,
-        color: '#fff',
-    },
-    lightbox: {
-        '& img': {
-            top: theme.spacing(16)
-        }
-    }
-}))
- 
+const useStyles = makeStyles(styles);
+
 const FileUpload = ({property}) => {
 
     const [openModal, setOpenModal] = useState(false);
@@ -85,7 +66,7 @@ const FileUpload = ({property}) => {
                         body: JSON.stringify(updateDBBody)
                     })
                     .then(response => response.json(), (err) => console.log('[RESPONSE]', err))
-                    .then(data => console.log('[IMAGE PATHS UPDATED]', data), (err) => 
+                    .then(data => console.log('[IMAGE PATHS UPDATED]', data), (err) =>
                         console.log('[ERROR ADDING IMG PATH]', err)
                     );
                 } catch (err) {
@@ -122,14 +103,14 @@ const FileUpload = ({property}) => {
     }
 
     const classes = useStyles();
-     
+
     const ReactS3Client = new S3(config);
 
     return (
         <div>
             <div className={classes.img}>
-            {imagePaths.map((path, i) => 
-                <img 
+            {imagePaths.map((path, i) =>
+                <img
                 onClick={() => {setImageIndex(i); setOpenLightbox(true)}}
                 key={`path-${path}`}
                 src={`${process.env.REACT_APP_S3_URL}images/properties/${property}/${path}`} />
