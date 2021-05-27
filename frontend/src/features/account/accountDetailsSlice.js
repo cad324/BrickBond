@@ -3,21 +3,11 @@ import { createSlice } from '@reduxjs/toolkit'
 export const accountDetailsSlice = createSlice({
     name: 'accountDetails',
     initialState: {
-        details: {
-            firstName: '',
-            lastName: '',
-            dob: '',
-            issuer: false,
-            address1: '',
-            address2: '',
-            city: '',
-            province: '',
-            zip: ''
-        }
+        details: {}
     },
     reducers: {
         accountDetailsSetter: (state, action) => {
-            state = action.payload
+            state.details = action.payload
         }
     }
 })

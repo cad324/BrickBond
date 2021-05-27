@@ -24,13 +24,12 @@ const ENDPOINT = process.env.REACT_APP_ENDPOINT;
 const AccountSettings = ({address}) => {
 
     const dispatch = useDispatch();
+    const details = useSelector((state) => state.accountDetailsSetter.details );
 
-    const [userData, setUserData] = useState({});
+    const [userData, setUserData] = useState(details);
     const [checked, setChecked] = useState(false);
     const [changed, setChanged] = useState(false);
     const [putChanges, setPutChanges] = useState([false, ""]);
-
-    const details = useSelector((state) => state.accountDetailsSetter.details );
 
     const classes = useStyles();
 
@@ -66,7 +65,11 @@ const AccountSettings = ({address}) => {
     } 
 
     useEffect(() => {
-        getUserData();
+        if (isEmpty(userData)) {
+            getUserData();
+        } else {
+            console.log('[USER DATA]', userData);
+        }
         dispatch(setPage('/settings'));
     }, []);
 
@@ -111,6 +114,10 @@ const AccountSettings = ({address}) => {
         let tempUserData = Object.assign({}, userData);
         tempUserData[item] = val;
         setUserData(tempUserData);
+    }
+
+    const isEmpty = (obj) => {
+        return JSON.stringify(obj) === '{}';
     }
 
     return (

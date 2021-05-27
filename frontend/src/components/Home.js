@@ -5,9 +5,11 @@ import {
     CardContent,
     Toolbar,
     CardActions,
-    Link,
     Button } from '@material-ui/core';
 import {Helmet} from "react-helmet";
+import {
+    Link
+  } from "react-router-dom";
 import {styles} from './Home.Style';
 import BricksList from './BricksList';
 import { makeStyles } from '@material-ui/core/styles';
@@ -25,7 +27,7 @@ const Home = ({address, balance, propertyDetails, properties,
 
     useEffect(() => {
         dispatch(setPage("/"));
-    });
+    }, []);
 
     return (
         <main className={classes.content}>

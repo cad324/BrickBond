@@ -12,6 +12,8 @@ import {Helmet} from "react-helmet";
 import {
   Link
 } from "react-router-dom";
+import { setPage } from '../features/page/currentPageSlice';
+import { useDispatch } from 'react-redux';
 
 const useStyles = makeStyles(styles);
 
@@ -19,9 +21,12 @@ const BrowseProperties = (props) => {
 
   useEffect(() => {
     props.getAllPropertyBrickCounts();
+    dispatch(setPage('/properties'));
   }, []);
 
   const classes = useStyles();
+
+  const dispatch = useDispatch();
 
   return (
     <div className={classes.content}>

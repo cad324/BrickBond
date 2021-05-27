@@ -16,6 +16,7 @@ import AppLayout from './components/AppLayout';
 import ManageProperty from './components/ManageProperty';
 import BrowseProperties from './components/BrowseProperties';
 import AccountSettings from './components/AccountSettings';
+import Analytics from './components/Analytics';
 import Home from './components/Home';
 import { useSelector, useDispatch } from 'react-redux';
 import { addresser } from './features/account/addresserSlice';
@@ -32,7 +33,7 @@ web3.eth.net.isListening()
 
 const BrickBond = new web3.eth.Contract(
   ContractABI,
-  "0xc20873e197C28c46946b3B85E66DCD71C2E8E223" //New contract address here
+  "0xdD9453D060F72510bC6880911204b758f28eb87d" //New contract address here
 );
 
 
@@ -558,6 +559,9 @@ const App = () => {
               allBricks={allBricks}
               getAllPropertyBricks={() => getAllPropertyBricks()}
             />
+          } />
+          <Route exact path="/analytics" render={(props) => 
+            <Analytics {...props} />
           } />
         </Switch>
         <Snackbar open={createdBrick[0]} autoHideDuration={5000}>
