@@ -1,5 +1,6 @@
 # BrickBonds 
 
+To learn about the development journey, read [design-journey](documents/design-journey.md)
 ## Overview
 
 BrickBonds is a dApp built on the Ethereum network. Conceptually, it allows a property owner to register their rental properties on the network, and create tokens (called BRICKS) representing a fraction of the property.
